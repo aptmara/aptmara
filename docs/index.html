@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f172a">
+    <title>SIGNAL LOOP // aptmara</title>
+    <meta
+      name="description"
+      content="A tiny industrial-styled browser game hidden in aptmara's GitHub profile."
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-left"></div>
+      <div class="ambient ambient-right"></div>
+
+      <main class="layout">
+        <section class="hero panel">
+          <p class="eyebrow">SECRET BUILD // PLAYABLE PROTOTYPE</p>
+          <h1>SIGNAL LOOP</h1>
+          <p class="lede">
+            オレンジの signal を集めて、灰色の noise を避ける 60 秒の小さなゲームです。
+            ゲームプログラマとしての「まず触って確かめる」感じを、そのまま置いています。
+          </p>
+
+          <div class="hero-actions">
+            <button id="start-button" class="cta" type="button">START RUN</button>
+            <a class="ghost" href="https://github.com/aptmara/aptmara">BACK TO PROFILE</a>
+          </div>
+
+          <ul class="rules">
+            <li><span>MOVE</span> Arrow keys / A D / mouse / touch</li>
+            <li><span>SIGNAL</span> +1 score and a short burst</li>
+            <li><span>NOISE</span> -1 stability, 3 hitsで終了</li>
+          </ul>
+        </section>
+
+        <section class="board panel">
+          <div class="board-top">
+            <div>
+              <p class="eyebrow">ARCADE PANEL</p>
+              <h2>Catch clean signal.</h2>
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <span class="label">Score</span>
+                <strong id="score-value">0</strong>
+              </div>
+              <div class="stat">
+                <span class="label">Best</span>
+                <strong id="best-value">0</strong>
+              </div>
+              <div class="stat">
+                <span class="label">Time</span>
+                <strong id="time-value">60</strong>
+              </div>
+              <div class="stat danger">
+                <span class="label">Stability</span>
+                <strong id="lives-value">3</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas-frame">
+            <canvas id="game" width="720" height="480" aria-label="SIGNAL LOOP game canvas"></canvas>
+            <div class="overlay" id="overlay">
+              <p class="overlay-kicker">READY</p>
+              <h3 id="overlay-title">SIGNAL LOOP</h3>
+              <p id="overlay-copy">START RUN を押して begin。 signal は拾って、 noise は避ける。</p>
+              <button id="overlay-button" class="cta" type="button">PLAY</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
