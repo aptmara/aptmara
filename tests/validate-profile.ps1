@@ -53,7 +53,8 @@ foreach ($requiredPattern in @(
     'class="stage-card"',
     'class="footer-strip"',
     'id="progress-bar"',
-    'id="state-text"'
+    'id="state-text"',
+    'W A S D'
 )) {
     if ($pagesIndex -notmatch $requiredPattern) {
         throw "Pages index is missing required layout pattern: $requiredPattern"
