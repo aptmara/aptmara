@@ -31,6 +31,8 @@ foreach ($pagesPath in @($pagesIndexPath, $pagesStylesPath, $pagesScriptPath)) {
 }
 
 $readme = Get-Content -Raw -Encoding UTF8 $readmePath
+$pagesIndex = Get-Content -Raw -Encoding UTF8 $pagesIndexPath
+$pagesScript = Get-Content -Raw -Encoding UTF8 $pagesScriptPath
 
 if ($readme -notmatch "\./assets/header\.svg") {
     throw "README does not reference ./assets/header.svg"
@@ -43,6 +45,28 @@ if ($readme -notmatch "https://aptmara\.github\.io/aptmara/") {
 foreach ($repo in $requiredRepos) {
     if ($readme -notmatch [Regex]::Escape($repo)) {
         throw "README is missing required repository reference: $repo"
+    }
+}
+
+foreach ($requiredPattern in @(
+    'class="cabinet"',
+    'class="status-strip"',
+    'class="stage-shell"',
+    'class="control-strip"'
+)) {
+    if ($pagesIndex -notmatch $requiredPattern) {
+        throw "Pages index is missing required layout pattern: $requiredPattern"
+    }
+}
+
+foreach ($legacyPattern in @(
+    'class="hero panel"',
+    'class="board panel"',
+    'class="ambient',
+    'drawUi\('
+)) {
+    if ($pagesIndex -match $legacyPattern -or $pagesScript -match $legacyPattern) {
+        throw "Legacy layout pattern still exists: $legacyPattern"
     }
 }
 
