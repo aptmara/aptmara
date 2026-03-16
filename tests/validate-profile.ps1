@@ -3,6 +3,9 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $readmePath = Join-Path $root "README.md"
 $headerPath = Join-Path $root "assets\\header.svg"
+$pagesIndexPath = Join-Path $root "docs\\index.html"
+$pagesStylesPath = Join-Path $root "docs\\styles.css"
+$pagesScriptPath = Join-Path $root "docs\\game.js"
 
 $requiredRepos = @(
     "DesktopOrganizer",
@@ -21,10 +24,20 @@ if (-not (Test-Path $headerPath)) {
     throw "header.svg not found: $headerPath"
 }
 
+foreach ($pagesPath in @($pagesIndexPath, $pagesStylesPath, $pagesScriptPath)) {
+    if (-not (Test-Path $pagesPath)) {
+        throw "Pages asset not found: $pagesPath"
+    }
+}
+
 $readme = Get-Content -Raw $readmePath
 
 if ($readme -notmatch "\./assets/header\.svg") {
     throw "README does not reference ./assets/header.svg"
+}
+
+if ($readme -notmatch "https://aptmara\.github\.io/aptmara/") {
+    throw "README does not reference the GitHub Pages game"
 }
 
 foreach ($repo in $requiredRepos) {
@@ -34,5 +47,6 @@ foreach ($repo in $requiredRepos) {
 }
 
 [xml](Get-Content -Raw $headerPath) | Out-Null
+[xml](Get-Content -Raw (Join-Path $root "docs\\favicon.svg")) | Out-Null
 
 Write-Output "PROFILE_VALID"

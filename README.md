@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Unity / C# / C++ を軸に、ゲームのプロトタイプ、実用ツール、開発自動化を組み立てています。<br>
+  ゲームプログラマ。Unity / C# / C++ を軸に、ゲームのプロトタイプ、実用ツール、開発自動化を組み立てています。<br>
   速く試して、手触りを見て、必要ならすぐ作り直すタイプです。
 </p>
 
@@ -42,6 +42,15 @@
 > Build small.  
 > Test quickly.  
 > Keep the sharp parts.
+
+<details>
+  <summary><strong>SECRET BUILD // playable prototype</strong></summary>
+  <br>
+  <a href="https://aptmara.github.io/aptmara/">
+    <img src="https://img.shields.io/badge/PLAY-SIGNAL_LOOP-f97316?style=for-the-badge" alt="Play SIGNAL LOOP">
+  </a>
+  <p>1 minute で終わる小さな signal collector です。キーボードでもマウスでも遊べます。</p>
+</details>
 
 <p>
   <img src="https://github-readme-stats.vercel.app/api?username=aptmara&show_icons=true&hide_border=true&title_color=0f172a&icon_color=e85d04&text_color=334155&bg_color=ffffff" alt="GitHub stats" height="160">
