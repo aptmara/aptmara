@@ -49,10 +49,9 @@ foreach ($repo in $requiredRepos) {
 }
 
 foreach ($requiredPattern in @(
-    'class="workbench"',
-    'class="guidance-strip"',
-    'class="stage-shell"',
-    'class="control-strip"',
+    'class="playtable"',
+    'class="stage-card"',
+    'class="footer-strip"',
     'id="charge-bar"',
     'id="state-text"'
 )) {
@@ -66,13 +65,19 @@ foreach ($legacyPattern in @(
     'class="board panel"',
     'class="ambient',
     'drawUi\(',
+    'class="workbench"',
+    'class="guidance-strip"',
     'id="score-value"',
     'id="best-value"',
     'id="time-value"',
     'id="lives-value"',
     'scoreValue',
     'finishGame\(',
-    'spawnDrop\('
+    'spawnDrop\(',
+    'ribbons',
+    'sparks',
+    'rings',
+    'camera\.trauma'
 )) {
     if ($pagesIndex -match $legacyPattern -or $pagesScript -match $legacyPattern) {
         throw "Legacy layout pattern still exists: $legacyPattern"
