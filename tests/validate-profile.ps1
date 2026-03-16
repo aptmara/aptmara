@@ -49,10 +49,12 @@ foreach ($repo in $requiredRepos) {
 }
 
 foreach ($requiredPattern in @(
-    'class="cabinet"',
-    'class="status-strip"',
+    'class="workbench"',
+    'class="guidance-strip"',
     'class="stage-shell"',
-    'class="control-strip"'
+    'class="control-strip"',
+    'id="charge-bar"',
+    'id="state-text"'
 )) {
     if ($pagesIndex -notmatch $requiredPattern) {
         throw "Pages index is missing required layout pattern: $requiredPattern"
@@ -63,7 +65,14 @@ foreach ($legacyPattern in @(
     'class="hero panel"',
     'class="board panel"',
     'class="ambient',
-    'drawUi\('
+    'drawUi\(',
+    'id="score-value"',
+    'id="best-value"',
+    'id="time-value"',
+    'id="lives-value"',
+    'scoreValue',
+    'finishGame\(',
+    'spawnDrop\('
 )) {
     if ($pagesIndex -match $legacyPattern -or $pagesScript -match $legacyPattern) {
         throw "Legacy layout pattern still exists: $legacyPattern"
