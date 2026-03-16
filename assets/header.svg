@@ -30,27 +30,27 @@
   <text x="170" y="78" text-anchor="middle" fill="#F8FAFC" font-family="sans-serif" font-size="13" letter-spacing="1.4">プロフィール</text>
 
   <text x="104" y="140" fill="#0F172A" font-family="sans-serif" font-size="72" font-weight="700" letter-spacing="1.2">APTMA</text>
-  <text x="104" y="188" fill="#1E293B" font-family="sans-serif" font-size="25" font-weight="700" letter-spacing="0.8">ゲーム / ツール / プレイアブル試作</text>
+  <text x="104" y="188" fill="#1E293B" font-family="sans-serif" font-size="25" font-weight="700" letter-spacing="0.4">ゲーム制作 / ツール開発 / 遊べる試作</text>
   <rect x="104" y="214" width="372" height="4" rx="2" fill="#F97316"/>
   <text x="104" y="248" fill="#334155" font-family="sans-serif" font-size="18" letter-spacing="0.4">Unity + C# + C++ + 自動化</text>
-  <text x="104" y="279" fill="#475569" font-family="sans-serif" font-size="15" letter-spacing="0.2">まず作って、触って、良い手触りだけ残す。</text>
+  <text x="104" y="279" fill="#475569" font-family="sans-serif" font-size="15" letter-spacing="0.2">まず作り、触って確かめ、良かったものを残す。</text>
 
-  <text x="814" y="62" fill="#CBD5E1" font-family="sans-serif" font-size="14" letter-spacing="0.8">いま作るもの</text>
+  <text x="814" y="62" fill="#CBD5E1" font-family="sans-serif" font-size="14" letter-spacing="0.4">最近つくっているもの</text>
 
   <rect x="814" y="84" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
   <circle cx="842" cy="112" r="6" fill="#F97316"/>
-  <text x="862" y="108" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">ゲーム試作</text>
-  <text x="862" y="128" fill="#CBD5E1" font-family="sans-serif" font-size="15">ループと手触りを先に確かめる</text>
+  <text x="862" y="108" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">ゲームの試作</text>
+  <text x="862" y="128" fill="#CBD5E1" font-family="sans-serif" font-size="15">まず遊べるところまで作る</text>
 
   <rect x="814" y="152" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
   <circle cx="842" cy="180" r="6" fill="#F97316"/>
   <text x="862" y="176" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">デスクトップツール</text>
-  <text x="862" y="196" fill="#CBD5E1" font-family="sans-serif" font-size="15">日常作業の摩擦を減らす</text>
+  <text x="862" y="196" fill="#CBD5E1" font-family="sans-serif" font-size="15">日々の作業を少し楽にする</text>
 
   <rect x="814" y="220" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
   <circle cx="842" cy="248" r="6" fill="#F97316"/>
-  <text x="862" y="244" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">開発自動化</text>
-  <text x="862" y="264" fill="#CBD5E1" font-family="sans-serif" font-size="15">補助ツールで手作業を減らす</text>
+  <text x="862" y="244" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">開発の自動化</text>
+  <text x="862" y="264" fill="#CBD5E1" font-family="sans-serif" font-size="15">手作業を減らす仕組みを作る</text>
 
   <circle cx="1118" cy="48" r="10" fill="#F97316"/>
   <circle cx="1089" cy="48" r="5" fill="#E2E8F0" fill-opacity="0.9"/>
