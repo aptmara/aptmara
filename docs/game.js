@@ -41,6 +41,7 @@ const player = {
 
 function setOverlay(title, copy, buttonLabel) {
   overlayTitle.textContent = title;
+  overlayTitle.hidden = title === "";
   overlayCopy.textContent = copy;
   overlayButton.textContent = buttonLabel;
   overlay.hidden = false;
@@ -70,6 +71,7 @@ function resetGame() {
   state.drops = [];
   state.particles = [];
   state.lastTick = performance.now();
+  startButton.textContent = "やり直す";
   hideOverlay();
   updateHud();
 }
@@ -83,11 +85,7 @@ function finishGame() {
   }
 
   updateHud();
-  setOverlay(
-    "終了",
-    `今回の得点は ${state.score} 点です。最高得点は ${state.best} 点です。もう一度遊ぶなら「もう一回」を押してください。`,
-    "もう一回",
-  );
+  setOverlay("終了", `${state.score} 点。最高 ${state.best} 点。`, "もう一回");
 }
 
 function spawnDrop() {
@@ -153,14 +151,18 @@ function update(dt) {
   state.spawnClock += dt;
   state.timeLeft = Math.max(0, 60 - state.gameClock);
 
-  const keyboardDirection = Number(state.keys.has("arrowright") || state.keys.has("d")) -
+  const keyboardDirection =
+    Number(state.keys.has("arrowright") || state.keys.has("d")) -
     Number(state.keys.has("arrowleft") || state.keys.has("a"));
 
   if (keyboardDirection !== 0) {
     state.pointerX += keyboardDirection * player.speed * dt;
   }
 
-  state.pointerX = Math.max(player.width / 2, Math.min(width - player.width / 2, state.pointerX));
+  state.pointerX = Math.max(
+    player.width / 2,
+    Math.min(width - player.width / 2, state.pointerX),
+  );
   state.playerX += (state.pointerX - state.playerX) * Math.min(1, dt * 14);
 
   const spawnInterval = Math.max(0.28, 0.72 - state.elapsed * 0.0038);
@@ -171,7 +173,10 @@ function update(dt) {
 
   state.drops = state.drops.filter((drop) => {
     drop.y += drop.speed * dt;
-    drop.x += Math.sin(state.elapsed * drop.wobbleSpeed + drop.wobble) * drop.drift * dt;
+    drop.x +=
+      Math.sin(state.elapsed * drop.wobbleSpeed + drop.wobble) *
+      drop.drift *
+      dt;
 
     const playerLeft = state.playerX - player.width / 2;
     const playerRight = state.playerX + player.width / 2;
@@ -183,7 +188,7 @@ function update(dt) {
     const dx = drop.x - closestX;
     const dy = drop.y - closestY;
 
-    if ((dx * dx) + (dy * dy) < drop.radius * drop.radius) {
+    if (dx * dx + dy * dy < drop.radius * drop.radius) {
       handleCollect(drop);
       return false;
     }
@@ -221,21 +226,14 @@ function update(dt) {
 
 function drawBackground(time) {
   context.clearRect(0, 0, width, height);
-  context.fillStyle = "#060b14";
+  context.fillStyle = "#020202";
   context.fillRect(0, 0, width, height);
 
   context.save();
-  context.strokeStyle = "rgba(148, 163, 184, 0.08)";
+  context.strokeStyle = "rgba(255, 255, 255, 0.05)";
   context.lineWidth = 1;
 
-  for (let x = 0; x <= width; x += 32) {
-    context.beginPath();
-    context.moveTo(x + (time * 12 % 32), 0);
-    context.lineTo(x + (time * 12 % 32), height);
-    context.stroke();
-  }
-
-  for (let y = 0; y <= height; y += 32) {
+  for (let y = 0; y <= height; y += 12) {
     context.beginPath();
     context.moveTo(0, y);
     context.lineTo(width, y);
@@ -243,11 +241,15 @@ function drawBackground(time) {
   }
   context.restore();
 
-  const glow = context.createRadialGradient(width / 2, -40, 10, width / 2, -40, 460);
-  glow.addColorStop(0, "rgba(249, 115, 22, 0.20)");
-  glow.addColorStop(1, "rgba(249, 115, 22, 0)");
-  context.fillStyle = glow;
-  context.fillRect(0, 0, width, height);
+  context.fillStyle = "rgba(255, 106, 19, 0.08)";
+  context.fillRect(14, 14, width - 28, 4);
+
+  const sweepY = 32 + ((time * 110) % (height + 32));
+  context.fillStyle = "rgba(255, 106, 19, 0.08)";
+  context.fillRect(14, sweepY, width - 28, 2);
+
+  context.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  context.strokeRect(14.5, 14.5, width - 29, height - 29);
 }
 
 function drawPlayer() {
@@ -255,17 +257,18 @@ function drawPlayer() {
   const top = player.y;
 
   context.save();
-  context.fillStyle = "#f97316";
-  context.shadowColor = "rgba(249, 115, 22, 0.35)";
-  context.shadowBlur = 22;
+  context.fillStyle = "#ff6a13";
   context.beginPath();
-  context.roundRect(left, top, player.width, player.height, 9);
+  context.moveTo(left + 8, top);
+  context.lineTo(left + player.width - 8, top);
+  context.lineTo(left + player.width, top + player.height);
+  context.lineTo(left, top + player.height);
+  context.closePath();
   context.fill();
 
-  context.fillStyle = "#fed7aa";
+  context.fillStyle = "#ffd6b7";
   context.beginPath();
-  context.roundRect(left + 10, top + 5, player.width - 20, 4, 2);
-  context.fill();
+  context.fillRect(left + 14, top + 7, player.width - 28, 3);
   context.restore();
 }
 
@@ -275,35 +278,35 @@ function drawDrops(time) {
     context.translate(drop.x, drop.y);
 
     if (drop.kind === "signal") {
-      context.fillStyle = "#f97316";
-      context.shadowColor = "rgba(249, 115, 22, 0.4)";
-      context.shadowBlur = 18;
-      context.beginPath();
-      context.arc(0, 0, drop.radius, 0, Math.PI * 2);
-      context.fill();
-
-      context.fillStyle = "#ffedd5";
-      context.beginPath();
-      context.arc(
-        Math.cos(time * 3 + drop.x * 0.01) * 3,
-        Math.sin(time * 4 + drop.y * 0.01) * 3,
-        drop.radius * 0.36,
-        0,
-        Math.PI * 2,
+      context.rotate((time * 0.6 + drop.x * 0.002) % (Math.PI * 2));
+      context.fillStyle = "#ff6a13";
+      context.fillRect(
+        -drop.radius,
+        -drop.radius,
+        drop.radius * 2,
+        drop.radius * 2,
       );
-      context.fill();
+      context.fillStyle = "#fff0e4";
+      context.fillRect(
+        -drop.radius * 0.38,
+        -drop.radius * 0.38,
+        drop.radius * 0.76,
+        drop.radius * 0.76,
+      );
     } else {
-      context.strokeStyle = "#94a3b8";
-      context.lineWidth = 2.6;
+      context.strokeStyle = "#9ca3af";
+      context.lineWidth = 2.4;
+      context.strokeRect(
+        -drop.radius,
+        -drop.radius,
+        drop.radius * 2,
+        drop.radius * 2,
+      );
       context.beginPath();
-      context.arc(0, 0, drop.radius, 0, Math.PI * 2);
-      context.stroke();
-
-      context.beginPath();
-      context.moveTo(-drop.radius * 0.5, -drop.radius * 0.5);
-      context.lineTo(drop.radius * 0.5, drop.radius * 0.5);
-      context.moveTo(drop.radius * 0.5, -drop.radius * 0.5);
-      context.lineTo(-drop.radius * 0.5, drop.radius * 0.5);
+      context.moveTo(-drop.radius * 0.75, -drop.radius * 0.75);
+      context.lineTo(drop.radius * 0.75, drop.radius * 0.75);
+      context.moveTo(drop.radius * 0.75, -drop.radius * 0.75);
+      context.lineTo(-drop.radius * 0.75, drop.radius * 0.75);
       context.stroke();
     }
 
@@ -316,27 +319,14 @@ function drawParticles() {
     context.save();
     context.globalAlpha = Math.max(0, particle.life);
     context.fillStyle = particle.color;
-    context.beginPath();
-    context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-    context.fill();
+    context.fillRect(particle.x, particle.y, particle.size, particle.size);
     context.restore();
   });
-}
-
-function drawUi() {
-  context.save();
-  context.fillStyle = "rgba(255, 255, 255, 0.08)";
-  context.fillRect(24, 24, 212, 54);
-  context.fillStyle = "#cbd5e1";
-  context.font = "14px 'Zen Kaku Gothic New'";
-  context.fillText("シグナルを集める / ノイズを避ける", 40, 57);
-  context.restore();
 }
 
 function draw(timestamp) {
   const time = timestamp / 1000;
   drawBackground(time);
-  drawUi();
   drawPlayer();
   drawDrops(time);
   drawParticles();
@@ -364,17 +354,25 @@ canvas.addEventListener("mousemove", (event) => {
   setPointerPosition(event.clientX);
 });
 
-canvas.addEventListener("touchstart", (event) => {
-  if (event.touches[0]) {
-    setPointerPosition(event.touches[0].clientX);
-  }
-}, { passive: true });
+canvas.addEventListener(
+  "touchstart",
+  (event) => {
+    if (event.touches[0]) {
+      setPointerPosition(event.touches[0].clientX);
+    }
+  },
+  { passive: true },
+);
 
-canvas.addEventListener("touchmove", (event) => {
-  if (event.touches[0]) {
-    setPointerPosition(event.touches[0].clientX);
-  }
-}, { passive: true });
+canvas.addEventListener(
+  "touchmove",
+  (event) => {
+    if (event.touches[0]) {
+      setPointerPosition(event.touches[0].clientX);
+    }
+  },
+  { passive: true },
+);
 
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
@@ -397,7 +395,7 @@ startButton.addEventListener("click", startGame);
 overlayButton.addEventListener("click", startGame);
 
 updateHud();
-setOverlay("シグナルループ", "「はじめる」を押すと始まります。シグナルを集めて、ノイズを避けてください。", "はじめる");
+setOverlay("", "左右に動いて拾う。灰色は避ける。", "開始");
 requestAnimationFrame((timestamp) => {
   state.lastTick = timestamp;
   draw(timestamp);

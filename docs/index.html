@@ -1,88 +1,86 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0f172a">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#050505" />
     <title>シグナルループ | aptmara</title>
     <meta
       name="description"
-      content="aptmara の GitHub プロフィールに隠した、小さなブラウザゲーム。"
-    >
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      content="aptmara の GitHub プロフィールに置いた、小さなブラウザゲーム。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap"
       rel="stylesheet"
-    >
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="./styles.css">
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <div class="ambient ambient-left"></div>
-      <div class="ambient ambient-right"></div>
-
-      <main class="layout">
-        <section class="hero panel">
-          <p class="eyebrow">隠し要素 / ミニゲーム</p>
+    <main class="cabinet">
+      <header class="masthead">
+        <div class="title-block">
+          <a class="profile-link" href="https://github.com/aptmara/aptmara"
+            >aptmara / プロフィール</a
+          >
           <h1>シグナルループ</h1>
-          <p class="lede">
-            オレンジの粒を集め、灰色のノイズを避ける 60 秒ほどのミニゲームです。
-            まず触って感触を確かめる、という自分の作り方をそのまま小さなゲームにしました。
-          </p>
+        </div>
 
-          <div class="hero-actions">
-            <button id="start-button" class="cta" type="button">はじめる</button>
-            <a class="ghost" href="https://github.com/aptmara/aptmara">プロフィールへ戻る</a>
+        <button id="start-button" class="start-button" type="button">
+          開始
+        </button>
+      </header>
+
+      <section class="status-strip" aria-label="ゲーム情報">
+        <p class="rule-line">左右に動いてオレンジを拾う。灰色を避ける。</p>
+
+        <dl class="metrics">
+          <div class="metric">
+            <dt>得点</dt>
+            <dd id="score-value">0</dd>
           </div>
-
-          <ul class="rules">
-            <li><span>移動</span> 矢印キー / A D / マウス / タッチ</li>
-            <li><span>シグナル</span> 1 点増えます</li>
-            <li><span>ノイズ</span> 安定度が 1 減ります。3 回で終了です</li>
-          </ul>
-        </section>
-
-        <section class="board panel">
-          <div class="board-top">
-            <div>
-              <p class="eyebrow">ゲーム画面</p>
-              <h2>シグナルを集める。</h2>
-            </div>
-
-            <div class="stats">
-              <div class="stat">
-                <span class="label">得点</span>
-                <strong id="score-value">0</strong>
-              </div>
-              <div class="stat">
-                <span class="label">最高</span>
-                <strong id="best-value">0</strong>
-              </div>
-              <div class="stat">
-                <span class="label">残り時間</span>
-                <strong id="time-value">60</strong>
-              </div>
-              <div class="stat danger">
-                <span class="label">安定度</span>
-                <strong id="lives-value">3</strong>
-              </div>
-            </div>
+          <div class="metric">
+            <dt>最高</dt>
+            <dd id="best-value">0</dd>
           </div>
-
-          <div class="canvas-frame">
-            <canvas id="game" width="720" height="480" aria-label="シグナルループのゲーム画面"></canvas>
-            <div class="overlay" id="overlay">
-              <p class="overlay-kicker">準備完了</p>
-              <h3 id="overlay-title">シグナルループ</h3>
-              <p id="overlay-copy">「はじめる」を押すと始まります。シグナルを集めて、ノイズを避けてください。</p>
-              <button id="overlay-button" class="cta" type="button">はじめる</button>
-            </div>
+          <div class="metric">
+            <dt>残り</dt>
+            <dd><span id="time-value">60</span>s</dd>
           </div>
-        </section>
-      </main>
-    </div>
+          <div class="metric metric-warning">
+            <dt>耐久</dt>
+            <dd id="lives-value">3</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="stage-shell">
+        <canvas
+          id="game"
+          width="720"
+          height="480"
+          aria-label="シグナルループのゲーム画面"
+        ></canvas>
+
+        <div class="overlay" id="overlay">
+          <p class="overlay-label">隠しゲーム</p>
+          <h2 id="overlay-title">シグナルループ</h2>
+          <p id="overlay-copy">左右に動いて拾う。灰色は避ける。</p>
+          <button id="overlay-button" class="start-button" type="button">
+            開始
+          </button>
+        </div>
+      </section>
+
+      <footer class="control-strip">
+        <p>操作: ← → / A D / マウス / タッチ</p>
+        <a class="profile-link" href="https://github.com/aptmara/aptmara"
+          >GitHub プロフィールへ戻る</a
+        >
+      </footer>
+    </main>
 
     <script src="./game.js"></script>
   </body>
