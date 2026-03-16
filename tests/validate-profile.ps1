@@ -52,7 +52,7 @@ foreach ($requiredPattern in @(
     'class="playtable"',
     'class="stage-card"',
     'class="footer-strip"',
-    'id="charge-bar"',
+    'id="progress-bar"',
     'id="state-text"'
 )) {
     if ($pagesIndex -notmatch $requiredPattern) {
@@ -71,6 +71,7 @@ foreach ($legacyPattern in @(
     'id="best-value"',
     'id="time-value"',
     'id="lives-value"',
+    'id="charge-bar"',
     'scoreValue',
     'finishGame\(',
     'spawnDrop\(',

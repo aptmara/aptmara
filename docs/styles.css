@@ -158,7 +158,7 @@ body::before {
 
 .stage-card {
   margin-top: 14px;
-  padding: 16px;
+  padding: 16px 16px 18px;
 }
 
 .stage-head {
@@ -207,7 +207,8 @@ body::before {
   border-radius: inherit;
   background: linear-gradient(
     90deg,
-    rgba(245, 202, 119, 0.8),
+    rgba(142, 207, 218, 0.85),
+    rgba(245, 202, 119, 0.88),
     rgba(239, 123, 99, 0.95)
   );
   transition: width 90ms linear;
@@ -215,6 +216,11 @@ body::before {
 
 .state-copy {
   color: var(--coral-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.state-copy.is-complete {
+  color: var(--ink);
 }
 
 .canvas-wrap {
@@ -222,7 +228,7 @@ body::before {
   border-radius: 26px;
   overflow: hidden;
   border: 1px solid rgba(88, 71, 58, 0.12);
-  background: linear-gradient(180deg, #d8f0f3 0%, var(--sky) 100%);
+  background: linear-gradient(180deg, #f6ebdb 0 28%, #d8f0f3 28% 100%);
 }
 
 .canvas-wrap::after {

@@ -47,9 +47,9 @@
   <summary><strong>隠し要素 / ミニゲーム</strong></summary>
   <br>
   <a href="https://aptmara.github.io/aptmara/">
-    <img src="https://img.shields.io/badge/%E9%81%8A%E3%81%B6-%E3%82%B7%E3%82%B0%E3%83%8A%E3%83%AB%E3%83%AB%E3%83%BC%E3%83%97-f97316?style=for-the-badge" alt="シグナルループで遊ぶ">
+    <img src="https://img.shields.io/badge/%E9%81%8A%E3%81%B6-%E3%81%AA%E3%82%89%E3%81%B9%E3%81%AA%E3%81%8A%E3%81%97-f97316?style=for-the-badge" alt="ならべなおしで遊ぶ">
   </a>
-  <p>1 分ほどで終わる小さなゲームです。キーボードでもマウスでも遊べます。</p>
+  <p>散らばった小物を所定の位置へ戻して整える小さなゲームです。キーボードでもマウスでも遊べます。</p>
 </details>
 
 <p>

@@ -6,24 +6,68 @@ const overlay = document.getElementById("overlay");
 const overlayTitle = document.getElementById("overlay-title");
 const overlayCopy = document.getElementById("overlay-copy");
 const overlayButton = document.getElementById("overlay-button");
-const chargeBar = document.getElementById("charge-bar");
+const progressBar = document.getElementById("progress-bar");
 const stateText = document.getElementById("state-text");
 
 const width = canvas.width;
 const height = canvas.height;
-const padding = 72;
+const topBound = 88;
+const sidePadding = 84;
+const trayTop = 46;
+const trayHeight = 136;
+const looseTop = 224;
+const looseBottom = height - 86;
 const centerX = width * 0.5;
-const centerY = height * 0.58;
+const centerY = height * 0.74;
+const tau = Math.PI * 2;
+
+const slots = [
+  { id: 0, kind: "circle", color: "#ef7b63", x: 150, y: 114 },
+  { id: 1, kind: "square", color: "#f5ca77", x: 328, y: 114 },
+  { id: 2, kind: "capsule", color: "#8ecfda", x: 506, y: 114 },
+  { id: 3, kind: "diamond", color: "#9dc58a", x: 684, y: 114 },
+  { id: 4, kind: "flower", color: "#dca186", x: 812, y: 114 },
+];
+
+const scatterBases = [
+  { x: 216, y: 334, rotation: -0.36 },
+  { x: 734, y: 316, rotation: 0.38 },
+  { x: 592, y: 456, rotation: -0.18 },
+  { x: 308, y: 498, rotation: 0.34 },
+  { x: 474, y: 384, rotation: -0.24 },
+];
+
+function createPieces() {
+  return slots.map((slot, index) => {
+    const base = scatterBases[index];
+
+    return {
+      id: slot.id,
+      kind: slot.kind,
+      color: slot.color,
+      homeX: slot.x,
+      homeY: slot.y,
+      x: base.x + (Math.random() - 0.5) * 28,
+      y: base.y + (Math.random() - 0.5) * 22,
+      vx: 0,
+      vy: 0,
+      rotation: base.rotation + (Math.random() - 0.5) * 0.12,
+      rotationVelocity: 0,
+      scale: 1,
+      sorted: false,
+      snap: 0,
+    };
+  });
+}
 
 const state = {
   active: false,
-  holding: false,
-  charge: 0,
   time: 0,
   lastTick: performance.now(),
-  smudgeClock: 0,
-  message: "まだ静か",
+  message: `あと${slots.length}つ`,
   messageTimer: 0,
+  completed: 0,
+  grabbedId: null,
   pointer: {
     x: centerX,
     y: centerY,
@@ -49,9 +93,9 @@ const state = {
     down: false,
     hold: false,
   },
-  smudges: [],
+  pieces: createPieces(),
   puffs: [],
-  bubbles: [],
+  chips: [],
 };
 
 function clamp(value, min, max) {
@@ -81,6 +125,91 @@ function pulseDevice(duration) {
   }
 }
 
+function roundedRectPath(targetContext, x, y, boxWidth, boxHeight, radius) {
+  const safeRadius = Math.min(radius, boxWidth * 0.5, boxHeight * 0.5);
+
+  targetContext.beginPath();
+  targetContext.moveTo(x + safeRadius, y);
+  targetContext.lineTo(x + boxWidth - safeRadius, y);
+  targetContext.quadraticCurveTo(x + boxWidth, y, x + boxWidth, y + safeRadius);
+  targetContext.lineTo(x + boxWidth, y + boxHeight - safeRadius);
+  targetContext.quadraticCurveTo(
+    x + boxWidth,
+    y + boxHeight,
+    x + boxWidth - safeRadius,
+    y + boxHeight,
+  );
+  targetContext.lineTo(x + safeRadius, y + boxHeight);
+  targetContext.quadraticCurveTo(
+    x,
+    y + boxHeight,
+    x,
+    y + boxHeight - safeRadius,
+  );
+  targetContext.lineTo(x, y + safeRadius);
+  targetContext.quadraticCurveTo(x, y, x + safeRadius, y);
+  targetContext.closePath();
+}
+
+function hexToRgba(hex, alpha) {
+  const normalized = hex.replace("#", "");
+  const value = Number.parseInt(normalized, 16);
+  const red = (value >> 16) & 255;
+  const green = (value >> 8) & 255;
+  const blue = value & 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function tracePieceShape(kind, scale = 1) {
+  switch (kind) {
+    case "circle":
+      context.beginPath();
+      context.arc(0, 0, 31 * scale, 0, tau);
+      break;
+    case "square":
+      roundedRectPath(
+        context,
+        -34 * scale,
+        -34 * scale,
+        68 * scale,
+        68 * scale,
+        18 * scale,
+      );
+      break;
+    case "capsule":
+      roundedRectPath(
+        context,
+        -48 * scale,
+        -24 * scale,
+        96 * scale,
+        48 * scale,
+        24 * scale,
+      );
+      break;
+    case "diamond":
+      context.beginPath();
+      context.moveTo(0, -42 * scale);
+      context.lineTo(42 * scale, 0);
+      context.lineTo(0, 42 * scale);
+      context.lineTo(-42 * scale, 0);
+      context.closePath();
+      break;
+    case "flower":
+      context.beginPath();
+      context.arc(-18 * scale, -10 * scale, 18 * scale, 0, tau);
+      context.arc(18 * scale, -10 * scale, 18 * scale, 0, tau);
+      context.arc(16 * scale, 18 * scale, 18 * scale, 0, tau);
+      context.arc(-16 * scale, 18 * scale, 18 * scale, 0, tau);
+      context.closePath();
+      break;
+    default:
+      context.beginPath();
+      context.arc(0, 0, 30 * scale, 0, tau);
+      break;
+  }
+}
+
 function setOverlay(title, copy, buttonLabel) {
   overlayTitle.textContent = title;
   overlayCopy.textContent = copy;
@@ -92,25 +221,42 @@ function hideOverlay() {
   overlay.hidden = true;
 }
 
-function setMessage(message, duration = 0.18) {
+function setMessage(message, duration = 0.24) {
   state.message = message;
   state.messageTimer = duration;
 }
 
-function updateUi() {
-  chargeBar.style.width = `${Math.round(state.charge * 100)}%`;
-  stateText.textContent = state.message;
+function getRemainingCount() {
+  return state.pieces.length - state.completed;
 }
 
-function resetBlob() {
-  state.target.x = centerX;
-  state.target.y = centerY;
+function updateUi() {
+  const ratio =
+    state.pieces.length === 0 ? 0 : state.completed / state.pieces.length;
+
+  progressBar.style.width = `${Math.round(ratio * 100)}%`;
+  stateText.textContent = state.message;
+  stateText.classList.toggle(
+    "is-complete",
+    state.active && state.completed === state.pieces.length,
+  );
+
+  if (!state.active) {
+    startButton.textContent = "はじめる";
+  } else if (state.completed === state.pieces.length) {
+    startButton.textContent = "もう一回";
+  } else {
+    startButton.textContent = "並べ直す";
+  }
+}
+
+function resetBlobPosition() {
   state.pointer.x = centerX;
   state.pointer.y = centerY;
+  state.target.x = centerX;
+  state.target.y = centerY;
   state.pointer.down = false;
-  state.holding = false;
-  state.charge = 0;
-  state.smudgeClock = 0;
+  state.keys.hold = false;
   state.blob.x = centerX;
   state.blob.y = centerY;
   state.blob.vx = 0;
@@ -118,10 +264,20 @@ function resetBlob() {
   state.blob.tilt = 0;
   state.blob.scaleX = 1;
   state.blob.scaleY = 1;
-  state.smudges = [];
+}
+
+function resetRound() {
+  state.active = true;
+  state.completed = 0;
+  state.grabbedId = null;
+  state.time = 0;
+  state.messageTimer = 0;
+  state.pieces = createPieces();
   state.puffs = [];
-  state.bubbles = [];
-  setMessage("もどした", 0.4);
+  state.chips = [];
+  resetBlobPosition();
+  hideOverlay();
+  setMessage(`あと${slots.length}つ`, 0.5);
   updateUi();
 }
 
@@ -131,9 +287,8 @@ function activate() {
   }
 
   state.active = true;
-  startButton.textContent = "もどす";
   hideOverlay();
-  setMessage("さわってる", 0.45);
+  setMessage(`あと${getRemainingCount()}つ`, 0.5);
   updateUi();
 }
 
@@ -143,144 +298,274 @@ function ensureActive() {
   }
 }
 
-function emitPuffs(x, y, strength) {
-  const count = 3 + Math.round(strength * 5);
+function emitPuffs(x, y, color, count = 4, spread = 1) {
   for (let index = 0; index < count; index += 1) {
-    const angle = (Math.PI * 2 * index) / count + Math.random() * 0.22;
-    const speed = 20 + Math.random() * 80 + strength * 90;
+    const angle = (tau * index) / count + Math.random() * 0.35;
+    const speed = 30 + Math.random() * 44 + spread * 36;
+
     state.puffs.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed * 0.7,
-      radius: 12 + Math.random() * 14 + strength * 10,
-      life: 0.22 + Math.random() * 0.18 + strength * 0.1,
-      alpha: 0.28 + Math.random() * 0.18,
-      color: index % 2 === 0 ? "#fff7ef" : "#f7cfbe",
+      vy: Math.sin(angle) * speed * 0.72,
+      radius: 10 + Math.random() * 10 + spread * 4,
+      life: 0.24 + Math.random() * 0.14,
+      alpha: 0.26 + Math.random() * 0.12,
+      color,
     });
   }
 }
 
-function emitBubbles(x, y, strength) {
-  const count = 2 + Math.round(strength * 4);
+function emitChips(x, y, color, count = 7) {
   for (let index = 0; index < count; index += 1) {
-    state.bubbles.push({
-      x: x + (Math.random() - 0.5) * 36,
-      y: y + (Math.random() - 0.5) * 16,
-      vx: (Math.random() - 0.5) * 42,
-      vy: -30 - Math.random() * 90 - strength * 80,
-      radius: 5 + Math.random() * 8,
-      life: 0.45 + Math.random() * 0.3,
-      alpha: 0.24 + Math.random() * 0.14,
+    const angle = Math.random() * tau;
+    const speed = 70 + Math.random() * 90;
+
+    state.chips.push({
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed * 0.74 - 20,
+      width: 8 + Math.random() * 10,
+      height: 5 + Math.random() * 7,
+      rotation: Math.random() * tau,
+      spin: (Math.random() - 0.5) * 8,
+      life: 0.34 + Math.random() * 0.22,
+      alpha: 0.34 + Math.random() * 0.16,
+      color,
     });
   }
 }
 
-function addSmudge(speed) {
-  state.smudges.push({
-    x: state.blob.x,
-    y: state.blob.y,
-    width: 70 + speed * 0.045 + state.charge * 26,
-    height: 24 + speed * 0.012 + state.charge * 12,
-    angle: state.blob.tilt,
-    life: 0.2 + state.charge * 0.18,
-    alpha: 0.08 + Math.min(0.1, speed * 0.00008 + state.charge * 0.1),
+function findNearestSlot(x, y) {
+  let nearest = null;
+
+  slots.forEach((slot) => {
+    const distance = length(slot.x - x, slot.y - y);
+
+    if (!nearest || distance < nearest.distance) {
+      nearest = {
+        slot,
+        distance,
+      };
+    }
   });
+
+  return nearest;
+}
+
+function findNearestLoosePiece(anchorX, anchorY, maxDistance = 92) {
+  let nearestPiece = null;
+  let nearestDistance = maxDistance;
+
+  state.pieces.forEach((piece) => {
+    if (piece.sorted) {
+      return;
+    }
+
+    const distance = length(piece.x - anchorX, piece.y - anchorY);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestPiece = piece;
+    }
+  });
+
+  return nearestPiece;
+}
+
+function grabPiece(piece) {
+  state.grabbedId = piece.id;
+  piece.vx *= 0.24;
+  piece.vy *= 0.24;
+  piece.rotationVelocity *= 0.3;
+  piece.scale = Math.max(piece.scale, 1.04);
+  emitPuffs(piece.x, piece.y, hexToRgba(piece.color, 0.34), 3, 0.8);
+  pulseDevice(8);
+  setMessage("つまんだ", 0.18);
+}
+
+function trySnapPiece(piece, threshold = 78) {
+  const slot = slots[piece.id];
+  const distance = length(piece.x - slot.x, piece.y - slot.y);
+
+  if (distance > threshold) {
+    return false;
+  }
+
+  piece.sorted = true;
+  piece.x = slot.x;
+  piece.y = slot.y;
+  piece.vx = 0;
+  piece.vy = 0;
+  piece.rotation = 0;
+  piece.rotationVelocity = 0;
+  piece.scale = 1.08;
+  piece.snap = 1;
+
+  state.completed += 1;
+
+  emitPuffs(slot.x, slot.y, hexToRgba(piece.color, 0.36), 7, 1.25);
+  emitChips(slot.x, slot.y, piece.color, 8);
+  pulseDevice(12);
+
+  if (state.completed === state.pieces.length) {
+    setMessage("きれいにそろった", 0.9);
+    setOverlay(
+      "きれいにそろった",
+      "もう一回ならべ直せます。置いたときの収まり方だけを見ても大丈夫です。",
+      "もう一回",
+    );
+  } else {
+    setMessage(`あと${getRemainingCount()}つ`, 0.5);
+  }
+
+  updateUi();
+  return true;
+}
+
+function tryGrabNearestPiece() {
+  if (state.grabbedId !== null) {
+    return;
+  }
+
+  const nearest =
+    findNearestLoosePiece(state.target.x, state.target.y) ??
+    findNearestLoosePiece(state.blob.x, state.blob.y, 82);
+
+  if (nearest) {
+    grabPiece(nearest);
+    return;
+  }
+
+  setMessage("近くの小物に寄せる", 0.24);
 }
 
 function beginHold() {
   ensureActive();
   state.pointer.down = true;
-  state.holding = true;
-  setMessage("ためてる", 0.12);
+  tryGrabNearestPiece();
 }
 
-function endHold() {
-  if (!state.holding) {
+function releasePiece() {
+  if (state.grabbedId === null) {
     state.pointer.down = false;
     return;
   }
 
-  const stretchX = state.target.x - state.blob.x;
-  const stretchY = state.target.y - state.blob.y;
-  const direction = normalize(stretchX, stretchY, state.blob.vx, state.blob.vy);
-  const stretch = length(stretchX, stretchY);
-  const boost = 140 + state.charge * 420 + stretch * 1.25;
+  const piece = state.pieces[state.grabbedId];
+  state.grabbedId = null;
 
-  state.blob.vx += direction.x * boost;
-  state.blob.vy += direction.y * boost;
-  state.pointer.down = false;
-  state.holding = false;
+  piece.vx += state.blob.vx * 0.45;
+  piece.vy += state.blob.vy * 0.45;
+  piece.rotationVelocity += clamp(state.blob.vx * 0.0009, -0.08, 0.08);
 
-  emitPuffs(state.blob.x, state.blob.y, state.charge);
-  emitBubbles(state.blob.x, state.blob.y, state.charge);
-  pulseDevice(8 + Math.round(state.charge * 10));
-
-  if (state.charge > 0.72) {
-    setMessage("ぷにっと強く返った", 0.42);
-  } else if (state.charge > 0.32) {
-    setMessage("ぷにっと返った", 0.34);
-  } else {
-    setMessage("軽く返った", 0.24);
+  if (trySnapPiece(piece)) {
+    state.pointer.down = false;
+    return;
   }
 
-  state.charge = 0;
+  const nearestSlot = findNearestSlot(piece.x, piece.y);
+  if (
+    nearestSlot &&
+    nearestSlot.distance < 92 &&
+    nearestSlot.slot.id !== piece.id
+  ) {
+    const push = normalize(
+      piece.x - nearestSlot.slot.x,
+      piece.y - nearestSlot.slot.y,
+      0,
+      1,
+    );
+
+    piece.vx += push.x * 160;
+    piece.vy += Math.max(40, push.y * 150);
+    emitPuffs(piece.x, piece.y, "rgba(255, 248, 239, 0.42)", 3, 0.7);
+    setMessage("そこは別の場所", 0.3);
+  } else {
+    setMessage(`あと${getRemainingCount()}つ`, 0.2);
+  }
+
+  pulseDevice(4);
+  state.pointer.down = false;
 }
 
 function moveTargetTo(clientX, clientY) {
   const rect = canvas.getBoundingClientRect();
   const ratioX = width / rect.width;
   const ratioY = height / rect.height;
+
   state.pointer.x = (clientX - rect.left) * ratioX;
   state.pointer.y = (clientY - rect.top) * ratioY;
-  state.target.x = clamp(state.pointer.x, padding, width - padding);
-  state.target.y = clamp(state.pointer.y, padding, height - padding);
+  state.target.x = clamp(state.pointer.x, sidePadding, width - sidePadding);
+  state.target.y = clamp(state.pointer.y, topBound, height - 88);
 }
 
-function bounceBounds() {
-  const minX = padding;
-  const maxX = width - padding;
-  const minY = padding;
-  const maxY = height - padding;
+function bounceBlobBounds() {
+  const minX = sidePadding;
+  const maxX = width - sidePadding;
+  const minY = topBound;
+  const maxY = height - 88;
 
   if (state.blob.x < minX) {
     state.blob.x = minX;
     if (state.blob.vx < 0) {
-      state.blob.vx = -state.blob.vx * 0.52;
-      emitPuffs(state.blob.x, state.blob.y, 0.12);
-      pulseDevice(4);
+      state.blob.vx *= -0.3;
     }
   }
 
   if (state.blob.x > maxX) {
     state.blob.x = maxX;
     if (state.blob.vx > 0) {
-      state.blob.vx = -state.blob.vx * 0.52;
-      emitPuffs(state.blob.x, state.blob.y, 0.12);
-      pulseDevice(4);
+      state.blob.vx *= -0.3;
     }
   }
 
   if (state.blob.y < minY) {
     state.blob.y = minY;
     if (state.blob.vy < 0) {
-      state.blob.vy = -state.blob.vy * 0.52;
-      emitPuffs(state.blob.x, state.blob.y, 0.12);
-      pulseDevice(4);
+      state.blob.vy *= -0.3;
     }
   }
 
   if (state.blob.y > maxY) {
     state.blob.y = maxY;
     if (state.blob.vy > 0) {
-      state.blob.vy = -state.blob.vy * 0.52;
-      emitPuffs(state.blob.x, state.blob.y, 0.12);
-      pulseDevice(4);
+      state.blob.vy *= -0.3;
     }
   }
 }
 
-function updateMessage(dt, speed) {
+function bounceLoosePiece(piece) {
+  if (piece.x < sidePadding) {
+    piece.x = sidePadding;
+    if (piece.vx < 0) {
+      piece.vx *= -0.34;
+    }
+  }
+
+  if (piece.x > width - sidePadding) {
+    piece.x = width - sidePadding;
+    if (piece.vx > 0) {
+      piece.vx *= -0.34;
+    }
+  }
+
+  if (piece.y < looseTop) {
+    piece.y = looseTop;
+    if (piece.vy < 0) {
+      piece.vy = Math.abs(piece.vy) * 0.18;
+    }
+  }
+
+  if (piece.y > looseBottom) {
+    piece.y = looseBottom;
+    if (piece.vy > 0) {
+      piece.vy *= -0.26;
+    }
+  }
+}
+
+function updateMessage(dt) {
   if (state.messageTimer > 0) {
     state.messageTimer = Math.max(0, state.messageTimer - dt);
     if (state.messageTimer > 0) {
@@ -289,253 +574,289 @@ function updateMessage(dt, speed) {
   }
 
   if (!state.active) {
-    state.message = "まだ静か";
-  } else if (state.holding && state.charge > 0.76) {
-    state.message = "かなりたまってる";
-  } else if (state.holding) {
-    state.message = "ためてる";
-  } else if (speed > 420) {
-    state.message = "するっと流れてる";
-  } else if (speed > 150) {
-    state.message = "ふわっと戻る";
-  } else {
-    state.message = "おちついた";
+    state.message = `あと${getRemainingCount()}つ`;
+    return;
   }
+
+  if (state.completed === state.pieces.length) {
+    state.message = "きれいにそろった";
+    return;
+  }
+
+  if (state.grabbedId !== null) {
+    const piece = state.pieces[state.grabbedId];
+    const slot = slots[piece.id];
+    const distance = length(piece.x - slot.x, piece.y - slot.y);
+    state.message = distance < 86 ? "そこで離す" : "置き場所へ運ぶ";
+    return;
+  }
+
+  state.message = `あと${getRemainingCount()}つ`;
 }
 
-function update(dt) {
-  state.time += dt;
+function updateBlob(dt) {
+  const inputX = Number(state.keys.right) - Number(state.keys.left);
+  const inputY = Number(state.keys.down) - Number(state.keys.up);
+  const inputLength = length(inputX, inputY);
 
-  if (state.active) {
-    const inputX = Number(state.keys.right) - Number(state.keys.left);
-    const inputY = Number(state.keys.down) - Number(state.keys.up);
-    const inputLength = length(inputX, inputY);
-
-    if (inputLength > 0) {
-      const normalizedX = inputX / inputLength;
-      const normalizedY = inputY / inputLength;
-      state.target.x = clamp(
-        state.target.x + normalizedX * 360 * dt,
-        padding,
-        width - padding,
-      );
-      state.target.y = clamp(
-        state.target.y + normalizedY * 360 * dt,
-        padding,
-        height - padding,
-      );
-    }
-
-    if (state.holding || state.keys.hold) {
-      state.holding = true;
-      state.charge = clamp(state.charge + dt * 1.45, 0, 1);
-    } else {
-      state.charge = clamp(state.charge - dt * 2.1, 0, 1);
-    }
-
-    const spring = state.holding ? 16.5 : 10.6;
-    const damping = state.holding ? 8.4 : 9.4;
-    const accelerationX =
-      (state.target.x - state.blob.x) * spring - state.blob.vx * damping;
-    const accelerationY =
-      (state.target.y - state.blob.y) * spring - state.blob.vy * damping;
-
-    state.blob.vx += accelerationX * dt;
-    state.blob.vy += accelerationY * dt;
-
-    const maxSpeed = 860;
-    const speed = length(state.blob.vx, state.blob.vy);
-    if (speed > maxSpeed) {
-      const ratio = maxSpeed / speed;
-      state.blob.vx *= ratio;
-      state.blob.vy *= ratio;
-    }
-
-    state.blob.x += state.blob.vx * dt;
-    state.blob.y += state.blob.vy * dt;
-    bounceBounds();
-
-    const updatedSpeed = length(state.blob.vx, state.blob.vy);
-    const stretch = Math.min(0.18, updatedSpeed * 0.00016);
-    const tension = Math.min(
-      0.16,
-      length(state.target.x - state.blob.x, state.target.y - state.blob.y) *
-        0.00022,
+  if (inputLength > 0) {
+    state.target.x = clamp(
+      state.target.x + (inputX / inputLength) * 340 * dt,
+      sidePadding,
+      width - sidePadding,
     );
-    const press = state.holding ? 0.08 + state.charge * 0.18 : 0;
-
-    state.blob.scaleX = damp(
-      state.blob.scaleX,
-      1 + stretch + tension * 0.5 + press * 0.4,
-      12,
-      dt,
+    state.target.y = clamp(
+      state.target.y + (inputY / inputLength) * 340 * dt,
+      topBound,
+      height - 88,
     );
-    state.blob.scaleY = damp(
-      state.blob.scaleY,
-      1 - stretch * 0.45 - press - tension * 0.2,
-      12,
-      dt,
-    );
-    state.blob.tilt = damp(
-      state.blob.tilt,
-      clamp(state.blob.vx * 0.0011, -0.28, 0.28),
-      10,
-      dt,
-    );
-
-    state.smudgeClock += dt;
-    if ((updatedSpeed > 120 || state.holding) && state.smudgeClock >= 0.026) {
-      state.smudgeClock = 0;
-      addSmudge(updatedSpeed);
-    }
-
-    updateMessage(dt, updatedSpeed);
-  } else {
-    state.blob.scaleX = damp(state.blob.scaleX, 1, 8, dt);
-    state.blob.scaleY = damp(state.blob.scaleY, 1, 8, dt);
-    state.blob.tilt = damp(state.blob.tilt, 0, 8, dt);
   }
 
-  state.smudges = state.smudges.filter((smudge) => {
-    smudge.life -= dt;
-    smudge.alpha *= 0.965;
-    smudge.width *= 0.99;
-    smudge.height *= 0.995;
-    return smudge.life > 0.01 && smudge.alpha > 0.01;
-  });
+  const spring = state.grabbedId !== null ? 20 : 14;
+  const damping = state.grabbedId !== null ? 10.5 : 11.8;
 
+  state.blob.vx +=
+    ((state.target.x - state.blob.x) * spring - state.blob.vx * damping) * dt;
+  state.blob.vy +=
+    ((state.target.y - state.blob.y) * spring - state.blob.vy * damping) * dt;
+  state.blob.x += state.blob.vx * dt;
+  state.blob.y += state.blob.vy * dt;
+  bounceBlobBounds();
+
+  const speed = length(state.blob.vx, state.blob.vy);
+  const squeeze =
+    state.pointer.down || state.keys.hold || state.grabbedId !== null ? 1 : 0;
+
+  state.blob.scaleX = damp(
+    state.blob.scaleX,
+    1 + Math.min(0.16, speed * 0.00018) + squeeze * 0.05,
+    12,
+    dt,
+  );
+  state.blob.scaleY = damp(
+    state.blob.scaleY,
+    1 - Math.min(0.08, speed * 0.00008) - squeeze * 0.1,
+    12,
+    dt,
+  );
+  state.blob.tilt = damp(
+    state.blob.tilt,
+    clamp(state.blob.vx * 0.0012, -0.26, 0.26),
+    10,
+    dt,
+  );
+}
+
+function updatePieces(dt) {
+  state.pieces.forEach((piece) => {
+    if (piece.sorted) {
+      piece.scale = damp(piece.scale, 1, 12, dt);
+      piece.rotation = damp(piece.rotation, 0, 14, dt);
+      piece.snap = Math.max(0, piece.snap - dt * 3.6);
+      return;
+    }
+
+    if (state.grabbedId === piece.id) {
+      const targetX = state.blob.x + 8;
+      const targetY = state.blob.y - 44;
+
+      piece.vx += ((targetX - piece.x) * 22 - piece.vx * 9.8) * dt;
+      piece.vy += ((targetY - piece.y) * 22 - piece.vy * 9.8) * dt;
+      piece.x += piece.vx * dt;
+      piece.y += piece.vy * dt;
+      piece.rotation = damp(piece.rotation, state.blob.tilt * 0.55, 12, dt);
+      piece.scale = damp(piece.scale, 1.08, 10, dt);
+      return;
+    }
+
+    piece.vy += 36 * dt;
+    piece.vx *= Math.exp(-4.4 * dt);
+    piece.vy *= Math.exp(-4.4 * dt);
+    piece.rotation += piece.rotationVelocity;
+    piece.rotationVelocity *= 0.9;
+    piece.x += piece.vx * dt;
+    piece.y += piece.vy * dt;
+    piece.scale = damp(piece.scale, 1, 10, dt);
+    bounceLoosePiece(piece);
+  });
+}
+
+function updateParticles(dt) {
   state.puffs = state.puffs.filter((puff) => {
     puff.life -= dt;
     puff.x += puff.vx * dt;
     puff.y += puff.vy * dt;
     puff.vx *= 0.92;
     puff.vy *= 0.92;
-    puff.radius += dt * 18;
+    puff.radius += dt * 22;
     puff.alpha *= 0.95;
-    return puff.life > 0;
+    return puff.life > 0 && puff.alpha > 0.01;
   });
 
-  state.bubbles = state.bubbles.filter((bubble) => {
-    bubble.life -= dt;
-    bubble.x += bubble.vx * dt;
-    bubble.y += bubble.vy * dt;
-    bubble.vx *= 0.95;
-    bubble.vy *= 0.95;
-    bubble.alpha *= 0.96;
-    return bubble.life > 0 && bubble.alpha > 0.01;
+  state.chips = state.chips.filter((chip) => {
+    chip.life -= dt;
+    chip.x += chip.vx * dt;
+    chip.y += chip.vy * dt;
+    chip.vx *= 0.95;
+    chip.vy = chip.vy * 0.95 + 20 * dt;
+    chip.rotation += chip.spin * dt;
+    chip.alpha *= 0.96;
+    return chip.life > 0 && chip.alpha > 0.02;
   });
+}
 
+function update(dt) {
+  state.time += dt;
+
+  if (state.active) {
+    updateBlob(dt);
+    updatePieces(dt);
+  } else {
+    state.blob.scaleX = damp(state.blob.scaleX, 1, 8, dt);
+    state.blob.scaleY = damp(state.blob.scaleY, 1, 8, dt);
+    state.blob.tilt = damp(state.blob.tilt, 0, 8, dt);
+  }
+
+  updateParticles(dt);
+  updateMessage(dt);
   updateUi();
 }
 
 function drawBackground(time) {
-  context.fillStyle = "#c6e7eb";
+  context.fillStyle = "#d8eef1";
   context.fillRect(0, 0, width, height);
 
-  context.fillStyle = "rgba(255, 255, 255, 0.24)";
-  context.fillRect(28, 28, width - 56, height - 56);
+  context.fillStyle = "rgba(255, 255, 255, 0.3)";
+  roundedRectPath(context, 54, trayTop, width - 108, trayHeight, 38);
+  context.fill();
 
   context.fillStyle = "rgba(255, 255, 255, 0.16)";
-  for (let row = 0; row < 7; row += 1) {
-    for (let column = 0; column < 9; column += 1) {
-      const x = 86 + column * 94 + Math.sin(time * 0.7 + row * 0.8) * 2;
-      const y = 92 + row * 68 + Math.cos(time * 0.8 + column * 0.6) * 2;
-      context.beginPath();
-      context.arc(x, y, 5, 0, Math.PI * 2);
-      context.fill();
-    }
-  }
+  roundedRectPath(
+    context,
+    46,
+    looseTop - 12,
+    width - 92,
+    height - looseTop - 36,
+    34,
+  );
+  context.fill();
 
-  context.strokeStyle = "rgba(88, 71, 58, 0.08)";
+  context.strokeStyle = "rgba(88, 71, 58, 0.1)";
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(76, trayTop + trayHeight + 6);
+  context.lineTo(width - 76, trayTop + trayHeight + 6);
+  context.stroke();
+
+  context.strokeStyle = "rgba(88, 71, 58, 0.06)";
   context.lineWidth = 1;
-  for (let row = 0; row < 6; row += 1) {
-    const y = 96 + row * 74;
+  for (let row = 0; row < 4; row += 1) {
+    const y = looseTop + 48 + row * 84 + Math.sin(time * 0.8 + row) * 4;
     context.beginPath();
-    context.moveTo(76, y);
-    context.quadraticCurveTo(width * 0.5, y + 8, width - 76, y);
+    context.moveTo(108, y);
+    context.quadraticCurveTo(width * 0.5, y + 8, width - 108, y);
     context.stroke();
   }
 
-  context.strokeStyle = "rgba(88, 71, 58, 0.12)";
-  context.lineWidth = 2;
-  context.strokeRect(28, 28, width - 56, height - 56);
-}
-
-function drawTarget() {
-  const distance = length(
-    state.target.x - state.blob.x,
-    state.target.y - state.blob.y,
-  );
-
-  if (!state.holding && distance < 20) {
-    return;
+  context.fillStyle = "rgba(255, 255, 255, 0.2)";
+  for (let row = 0; row < 4; row += 1) {
+    for (let column = 0; column < 7; column += 1) {
+      const x = 134 + column * 114;
+      const y = looseTop + 32 + row * 92;
+      context.beginPath();
+      context.arc(x, y, 4, 0, tau);
+      context.fill();
+    }
   }
-
-  context.save();
-  context.translate(state.target.x, state.target.y);
-  context.fillStyle = "rgba(255, 255, 255, 0.46)";
-  context.beginPath();
-  context.arc(0, 0, 18 + state.charge * 16, 0, Math.PI * 2);
-  context.fill();
-
-  context.strokeStyle = "rgba(88, 71, 58, 0.18)";
-  context.lineWidth = 1.5;
-  context.beginPath();
-  context.arc(0, 0, 18 + state.charge * 16, 0, Math.PI * 2);
-  context.stroke();
-  context.restore();
 }
 
-function drawTether() {
-  const distance = length(
-    state.target.x - state.blob.x,
-    state.target.y - state.blob.y,
-  );
+function drawSlots() {
+  const grabbedPiece =
+    state.grabbedId !== null ? state.pieces[state.grabbedId] : null;
 
-  if (!state.holding && distance < 18) {
-    return;
-  }
+  slots.forEach((slot) => {
+    const piece = state.pieces[slot.id];
+    const highlight = grabbedPiece && grabbedPiece.id === slot.id;
+    const filled = piece.sorted;
+    const pulse = highlight ? 0.5 + Math.sin(state.time * 8) * 0.12 : 0;
 
-  context.save();
-  context.lineCap = "round";
-
-  context.strokeStyle = "rgba(255, 255, 255, 0.46)";
-  context.lineWidth = 18 + state.charge * 16;
-  context.beginPath();
-  context.moveTo(state.blob.x, state.blob.y);
-  context.quadraticCurveTo(
-    (state.blob.x + state.target.x) * 0.5,
-    (state.blob.y + state.target.y) * 0.5 - 10,
-    state.target.x,
-    state.target.y,
-  );
-  context.stroke();
-
-  context.strokeStyle = `rgba(239, 123, 99, ${0.16 + state.charge * 0.18})`;
-  context.lineWidth = 8 + state.charge * 10;
-  context.beginPath();
-  context.moveTo(state.blob.x, state.blob.y);
-  context.quadraticCurveTo(
-    (state.blob.x + state.target.x) * 0.5,
-    (state.blob.y + state.target.y) * 0.5 - 8,
-    state.target.x,
-    state.target.y,
-  );
-  context.stroke();
-  context.restore();
-}
-
-function drawSmudges() {
-  state.smudges.forEach((smudge) => {
     context.save();
-    context.translate(smudge.x, smudge.y);
-    context.rotate(smudge.angle);
-    context.fillStyle = `rgba(239, 123, 99, ${smudge.alpha})`;
-    context.beginPath();
-    context.ellipse(0, 0, smudge.width, smudge.height, 0, 0, Math.PI * 2);
+    context.translate(slot.x, slot.y);
+
+    context.fillStyle = filled
+      ? "rgba(255, 255, 255, 0.92)"
+      : "rgba(255, 255, 255, 0.66)";
+    roundedRectPath(context, -60, -42, 120, 84, 28);
+    context.fill();
+
+    context.strokeStyle = filled
+      ? "rgba(88, 71, 58, 0.14)"
+      : highlight
+        ? hexToRgba(slot.color, 0.52 + pulse * 0.2)
+        : "rgba(88, 71, 58, 0.1)";
+    context.lineWidth = highlight ? 3 : 2;
+    roundedRectPath(context, -60, -42, 120, 84, 28);
+    context.stroke();
+
+    context.globalAlpha = filled ? 0.12 : 0.22 + pulse * 0.12;
+    context.fillStyle = slot.color;
+    tracePieceShape(slot.kind, 0.64);
     context.fill();
     context.restore();
   });
+}
+
+function drawPieceShadow(piece) {
+  context.save();
+  context.translate(piece.x, piece.y + 30);
+  context.rotate(piece.rotation * 0.4);
+
+  context.fillStyle = piece.sorted
+    ? "rgba(88, 71, 58, 0.08)"
+    : "rgba(88, 71, 58, 0.12)";
+
+  context.beginPath();
+  context.ellipse(0, 0, 34 + piece.scale * 10, 14 + piece.scale * 4, 0, 0, tau);
+  context.fill();
+  context.restore();
+}
+
+function drawPiece(piece) {
+  context.save();
+  context.translate(piece.x, piece.y - piece.snap * 6);
+  context.rotate(piece.rotation);
+  context.scale(piece.scale, piece.scale);
+
+  context.fillStyle = piece.color;
+  tracePieceShape(piece.kind);
+  context.fill();
+
+  context.globalAlpha = 0.3;
+  context.fillStyle = "#fffaf2";
+  context.beginPath();
+  context.ellipse(-8, -14, 18, 10, -0.2, 0, tau);
+  context.fill();
+
+  context.globalAlpha = 0.18;
+  context.fillStyle = "#704f40";
+  context.beginPath();
+  context.ellipse(18, 18, 12, 8, -0.1, 0, tau);
+  context.fill();
+
+  context.globalAlpha = 1;
+  context.strokeStyle = "rgba(88, 71, 58, 0.16)";
+  context.lineWidth = 2;
+  tracePieceShape(piece.kind);
+  context.stroke();
+
+  if (piece.kind === "flower") {
+    context.fillStyle = "#fff8ef";
+    context.beginPath();
+    context.arc(0, 4, 11, 0, tau);
+    context.fill();
+  }
+
+  context.restore();
 }
 
 function drawPuffs() {
@@ -544,40 +865,68 @@ function drawPuffs() {
     context.globalAlpha = puff.alpha;
     context.fillStyle = puff.color;
     context.beginPath();
-    context.arc(puff.x, puff.y, puff.radius, 0, Math.PI * 2);
+    context.arc(puff.x, puff.y, puff.radius, 0, tau);
     context.fill();
     context.restore();
   });
 }
 
-function drawBubbles() {
-  state.bubbles.forEach((bubble) => {
+function drawChips() {
+  state.chips.forEach((chip) => {
     context.save();
-    context.globalAlpha = bubble.alpha;
-    context.fillStyle = "rgba(255, 255, 255, 0.75)";
-    context.beginPath();
-    context.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+    context.globalAlpha = chip.alpha;
+    context.translate(chip.x, chip.y);
+    context.rotate(chip.rotation);
+    context.fillStyle = chip.color;
+    roundedRectPath(
+      context,
+      -chip.width * 0.5,
+      -chip.height * 0.5,
+      chip.width,
+      chip.height,
+      chip.height * 0.45,
+    );
     context.fill();
-
-    context.strokeStyle = "rgba(88, 71, 58, 0.12)";
-    context.lineWidth = 1;
-    context.beginPath();
-    context.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
-    context.stroke();
     context.restore();
   });
 }
 
-function drawShadow() {
-  const speed = length(state.blob.vx, state.blob.vy);
-  const widthScale = 58 + speed * 0.03 + state.charge * 24;
-  const heightScale = 20 + speed * 0.008 + state.charge * 8;
+function drawTarget() {
+  if (!state.active) {
+    return;
+  }
 
+  context.save();
+  context.translate(state.target.x, state.target.y);
+  context.globalAlpha = state.grabbedId !== null ? 0.16 : 0.22;
+  context.fillStyle = "#fff8ef";
+  context.beginPath();
+  context.arc(0, 0, state.grabbedId !== null ? 16 : 18, 0, tau);
+  context.fill();
+
+  context.globalAlpha = 1;
+  context.strokeStyle = "rgba(88, 71, 58, 0.14)";
+  context.lineWidth = 1.5;
+  context.beginPath();
+  context.arc(0, 0, state.grabbedId !== null ? 16 : 18, 0, tau);
+  context.stroke();
+  context.restore();
+}
+
+function drawBlobShadow() {
   context.save();
   context.translate(state.blob.x, state.blob.y + 34);
   context.fillStyle = "rgba(88, 71, 58, 0.14)";
   context.beginPath();
-  context.ellipse(0, 0, widthScale, heightScale, 0, 0, Math.PI * 2);
+  context.ellipse(
+    0,
+    0,
+    42 + Math.abs(state.blob.vx) * 0.03,
+    16 + Math.abs(state.blob.vy) * 0.01,
+    0,
+    0,
+    tau,
+  );
   context.fill();
   context.restore();
 }
@@ -588,40 +937,37 @@ function drawBlob() {
   context.rotate(state.blob.tilt);
   context.scale(state.blob.scaleX, state.blob.scaleY);
 
+  context.fillStyle = "#fff8ef";
+  context.beginPath();
+  context.moveTo(-42, 4);
+  context.bezierCurveTo(-44, -28, -18, -44, 14, -44);
+  context.bezierCurveTo(42, -44, 48, -16, 40, 14);
+  context.bezierCurveTo(32, 40, -4, 44, -28, 32);
+  context.bezierCurveTo(-40, 26, -44, 18, -42, 4);
+  context.closePath();
+  context.fill();
+
+  context.globalAlpha = 0.28;
   context.fillStyle = "#ef7b63";
   context.beginPath();
-  context.moveTo(-72, 0);
-  context.bezierCurveTo(-76, -38, -18, -62, 46, -42);
-  context.bezierCurveTo(82, -30, 88, 20, 44, 40);
-  context.bezierCurveTo(-6, 62, -68, 42, -72, 0);
-  context.closePath();
+  context.ellipse(8, 18, 22, 10, -0.08, 0, tau);
   context.fill();
 
-  context.fillStyle = "#ffd8ca";
+  context.globalAlpha = 0.38;
+  context.fillStyle = "#ffffff";
   context.beginPath();
-  context.moveTo(-34, -16);
-  context.bezierCurveTo(-14, -34, 24, -34, 44, -14);
-  context.bezierCurveTo(18, -6, -8, -2, -34, -16);
-  context.closePath();
+  context.ellipse(-2, -14, 16, 8, -0.24, 0, tau);
   context.fill();
 
-  context.fillStyle = "#fff6ef";
-  context.beginPath();
-  context.ellipse(-6, -10, 22, 10, -0.2, 0, Math.PI * 2);
-  context.fill();
-
-  context.fillStyle = "rgba(88, 71, 58, 0.14)";
-  context.beginPath();
-  context.ellipse(26, 18, 18, 8, -0.18, 0, Math.PI * 2);
-  context.fill();
-
+  context.globalAlpha = 1;
   context.strokeStyle = "rgba(88, 71, 58, 0.16)";
   context.lineWidth = 2;
   context.beginPath();
-  context.moveTo(-72, 0);
-  context.bezierCurveTo(-76, -38, -18, -62, 46, -42);
-  context.bezierCurveTo(82, -30, 88, 20, 44, 40);
-  context.bezierCurveTo(-6, 62, -68, 42, -72, 0);
+  context.moveTo(-42, 4);
+  context.bezierCurveTo(-44, -28, -18, -44, 14, -44);
+  context.bezierCurveTo(42, -44, 48, -16, 40, 14);
+  context.bezierCurveTo(32, 40, -4, 44, -28, 32);
+  context.bezierCurveTo(-40, 26, -44, 18, -42, 4);
   context.closePath();
   context.stroke();
   context.restore();
@@ -629,13 +975,29 @@ function drawBlob() {
 
 function draw(timestamp) {
   drawBackground(timestamp / 1000);
-  drawSmudges();
+  drawSlots();
+
+  const loosePieces = state.pieces.filter(
+    (piece) => !piece.sorted && piece.id !== state.grabbedId,
+  );
+  const sortedPieces = state.pieces.filter((piece) => piece.sorted);
+  const grabbedPiece =
+    state.grabbedId !== null ? state.pieces[state.grabbedId] : null;
+
+  sortedPieces.forEach(drawPieceShadow);
+  sortedPieces.forEach(drawPiece);
+  loosePieces.forEach(drawPieceShadow);
   drawPuffs();
-  drawBubbles();
+  drawChips();
+  loosePieces.forEach(drawPiece);
   drawTarget();
-  drawTether();
-  drawShadow();
+  drawBlobShadow();
   drawBlob();
+
+  if (grabbedPiece) {
+    drawPieceShadow(grabbedPiece);
+    drawPiece(grabbedPiece);
+  }
 }
 
 function tick(timestamp) {
@@ -652,7 +1014,7 @@ function startOrReset() {
     return;
   }
 
-  resetBlob();
+  resetRound();
 }
 
 canvas.addEventListener("mousemove", (event) => {
@@ -669,7 +1031,7 @@ canvas.addEventListener("mousedown", (event) => {
 });
 
 window.addEventListener("mouseup", () => {
-  endHold();
+  releasePiece();
 });
 
 canvas.addEventListener(
@@ -679,10 +1041,11 @@ canvas.addEventListener(
       return;
     }
 
+    event.preventDefault();
     moveTargetTo(event.touches[0].clientX, event.touches[0].clientY);
     beginHold();
   },
-  { passive: true },
+  { passive: false },
 );
 
 canvas.addEventListener(
@@ -692,13 +1055,14 @@ canvas.addEventListener(
       return;
     }
 
+    event.preventDefault();
     moveTargetTo(event.touches[0].clientX, event.touches[0].clientY);
   },
-  { passive: true },
+  { passive: false },
 );
 
 window.addEventListener("touchend", () => {
-  endHold();
+  releasePiece();
 });
 
 window.addEventListener("keydown", (event) => {
@@ -728,14 +1092,14 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault();
   }
 
-  if (key === " ") {
+  if (key === " " && !event.repeat) {
     state.keys.hold = true;
     beginHold();
     event.preventDefault();
   }
 
-  if (key === "enter" && !state.active) {
-    activate();
+  if (key === "enter") {
+    startOrReset();
     event.preventDefault();
   }
 });
@@ -761,7 +1125,7 @@ window.addEventListener("keyup", (event) => {
 
   if (key === " ") {
     state.keys.hold = false;
-    endHold();
+    releasePiece();
     event.preventDefault();
   }
 });
@@ -771,9 +1135,9 @@ overlayButton.addEventListener("click", startOrReset);
 
 updateUi();
 setOverlay(
-  "シグナルループ",
-  "ぷにっと引いて、離したときの返りだけを見ています。",
-  "さわる",
+  "ならべなおし",
+  "散らばった小物を、それぞれのくぼみに戻します。",
+  "はじめる",
 );
 
 requestAnimationFrame((timestamp) => {
