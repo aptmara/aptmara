@@ -68,6 +68,7 @@ const state = {
   messageTimer: 0,
   completed: 0,
   grabbedId: null,
+  hoveredId: null,
   pointer: {
     x: centerX,
     y: centerY,
@@ -96,6 +97,9 @@ const state = {
   pieces: createPieces(),
   puffs: [],
   chips: [],
+  ripples: [],
+  slotGlow: slots.map(() => 0),
+  slotJolt: slots.map(() => 0),
 };
 
 function clamp(value, min, max) {
@@ -256,6 +260,7 @@ function resetBlobPosition() {
   state.target.x = centerX;
   state.target.y = centerY;
   state.pointer.down = false;
+  state.hoveredId = null;
   state.keys.hold = false;
   state.blob.x = centerX;
   state.blob.y = centerY;
@@ -270,11 +275,15 @@ function resetRound() {
   state.active = true;
   state.completed = 0;
   state.grabbedId = null;
+  state.hoveredId = null;
   state.time = 0;
   state.messageTimer = 0;
   state.pieces = createPieces();
   state.puffs = [];
   state.chips = [];
+  state.ripples = [];
+  state.slotGlow = slots.map(() => 0);
+  state.slotJolt = slots.map(() => 0);
   resetBlobPosition();
   hideOverlay();
   setMessage(`あと${slots.length}つ`, 0.5);
@@ -337,6 +346,20 @@ function emitChips(x, y, color, count = 7) {
   }
 }
 
+function emitRipples(x, y, color, count = 2) {
+  for (let index = 0; index < count; index += 1) {
+    state.ripples.push({
+      x,
+      y,
+      radius: 24 + index * 18,
+      width: 3.5 - index * 0.8,
+      life: 0.34 + index * 0.08,
+      alpha: 0.28 - index * 0.06,
+      color,
+    });
+  }
+}
+
 function findNearestSlot(x, y) {
   let nearest = null;
 
@@ -373,6 +396,16 @@ function findNearestLoosePiece(anchorX, anchorY, maxDistance = 92) {
   return nearestPiece;
 }
 
+function updateHoveredPiece() {
+  if (!state.active || state.grabbedId !== null) {
+    state.hoveredId = null;
+    return;
+  }
+
+  const hovered = findNearestLoosePiece(state.target.x, state.target.y, 124);
+  state.hoveredId = hovered ? hovered.id : null;
+}
+
 function grabPiece(piece) {
   state.grabbedId = piece.id;
   piece.vx *= 0.24;
@@ -384,7 +417,7 @@ function grabPiece(piece) {
   setMessage("つまんだ", 0.18);
 }
 
-function trySnapPiece(piece, threshold = 78) {
+function trySnapPiece(piece, threshold = 94) {
   const slot = slots[piece.id];
   const distance = length(piece.x - slot.x, piece.y - slot.y);
 
@@ -403,9 +436,12 @@ function trySnapPiece(piece, threshold = 78) {
   piece.snap = 1;
 
   state.completed += 1;
+  state.slotGlow[piece.id] = 1;
+  state.slotJolt[piece.id] = 0;
 
   emitPuffs(slot.x, slot.y, hexToRgba(piece.color, 0.36), 7, 1.25);
   emitChips(slot.x, slot.y, piece.color, 8);
+  emitRipples(slot.x, slot.y, piece.color, 2);
   pulseDevice(12);
 
   if (state.completed === state.pieces.length) {
@@ -429,8 +465,8 @@ function tryGrabNearestPiece() {
   }
 
   const nearest =
-    findNearestLoosePiece(state.target.x, state.target.y) ??
-    findNearestLoosePiece(state.blob.x, state.blob.y, 82);
+    findNearestLoosePiece(state.target.x, state.target.y, 124) ??
+    findNearestLoosePiece(state.blob.x, state.blob.y, 102);
 
   if (nearest) {
     grabPiece(nearest);
@@ -479,7 +515,14 @@ function releasePiece() {
 
     piece.vx += push.x * 160;
     piece.vy += Math.max(40, push.y * 150);
+    state.slotJolt[nearestSlot.slot.id] = 1;
     emitPuffs(piece.x, piece.y, "rgba(255, 248, 239, 0.42)", 3, 0.7);
+    emitRipples(
+      nearestSlot.slot.x,
+      nearestSlot.slot.y,
+      nearestSlot.slot.color,
+      1,
+    );
     setMessage("そこは別の場所", 0.3);
   } else {
     setMessage(`あと${getRemainingCount()}つ`, 0.2);
@@ -587,11 +630,16 @@ function updateMessage(dt) {
     const piece = state.pieces[state.grabbedId];
     const slot = slots[piece.id];
     const distance = length(piece.x - slot.x, piece.y - slot.y);
-    state.message = distance < 86 ? "そこで離す" : "置き場所へ運ぶ";
+    state.message = distance < 128 ? "そこなら収まる" : "置き場所へ運ぶ";
     return;
   }
 
   state.message = `あと${getRemainingCount()}つ`;
+}
+
+function updateSlotFeedback(dt) {
+  state.slotGlow = state.slotGlow.map((value) => Math.max(0, value - dt * 2.4));
+  state.slotJolt = state.slotJolt.map((value) => Math.max(0, value - dt * 5.2));
 }
 
 function updateBlob(dt) {
@@ -659,13 +707,26 @@ function updatePieces(dt) {
     if (state.grabbedId === piece.id) {
       const targetX = state.blob.x + 8;
       const targetY = state.blob.y - 44;
+      const slot = slots[piece.id];
+      const toSlotX = slot.x - piece.x;
+      const toSlotY = slot.y - piece.y;
+      const slotDistance = length(toSlotX, toSlotY);
+      const snapPull = clamp(1 - slotDistance / 180, 0, 1);
 
       piece.vx += ((targetX - piece.x) * 22 - piece.vx * 9.8) * dt;
       piece.vy += ((targetY - piece.y) * 22 - piece.vy * 9.8) * dt;
+      if (snapPull > 0) {
+        piece.vx += toSlotX * (7 + snapPull * 10) * snapPull * dt;
+        piece.vy += toSlotY * (7 + snapPull * 10) * snapPull * dt;
+        state.slotGlow[piece.id] = Math.max(
+          state.slotGlow[piece.id],
+          0.18 + snapPull * 0.82,
+        );
+      }
       piece.x += piece.vx * dt;
       piece.y += piece.vy * dt;
       piece.rotation = damp(piece.rotation, state.blob.tilt * 0.55, 12, dt);
-      piece.scale = damp(piece.scale, 1.08, 10, dt);
+      piece.scale = damp(piece.scale, 1.08 + snapPull * 0.05, 10, dt);
       return;
     }
 
@@ -676,7 +737,12 @@ function updatePieces(dt) {
     piece.rotationVelocity *= 0.9;
     piece.x += piece.vx * dt;
     piece.y += piece.vy * dt;
-    piece.scale = damp(piece.scale, 1, 10, dt);
+    piece.scale = damp(
+      piece.scale,
+      state.hoveredId === piece.id ? 1.05 : 1,
+      state.hoveredId === piece.id ? 12 : 10,
+      dt,
+    );
     bounceLoosePiece(piece);
   });
 }
@@ -703,21 +769,32 @@ function updateParticles(dt) {
     chip.alpha *= 0.96;
     return chip.life > 0 && chip.alpha > 0.02;
   });
+
+  state.ripples = state.ripples.filter((ripple) => {
+    ripple.life -= dt;
+    ripple.radius += dt * 110;
+    ripple.width = Math.max(0.6, ripple.width - dt * 4.2);
+    ripple.alpha *= 0.94;
+    return ripple.life > 0 && ripple.alpha > 0.01;
+  });
 }
 
 function update(dt) {
   state.time += dt;
 
   if (state.active) {
+    updateHoveredPiece();
     updateBlob(dt);
     updatePieces(dt);
   } else {
+    state.hoveredId = null;
     state.blob.scaleX = damp(state.blob.scaleX, 1, 8, dt);
     state.blob.scaleY = damp(state.blob.scaleY, 1, 8, dt);
     state.blob.tilt = damp(state.blob.tilt, 0, 8, dt);
   }
 
   updateParticles(dt);
+  updateSlotFeedback(dt);
   updateMessage(dt);
   updateUi();
 }
@@ -777,28 +854,31 @@ function drawSlots() {
   slots.forEach((slot) => {
     const piece = state.pieces[slot.id];
     const highlight = grabbedPiece && grabbedPiece.id === slot.id;
+    const hover = state.hoveredId === slot.id;
     const filled = piece.sorted;
     const pulse = highlight ? 0.5 + Math.sin(state.time * 8) * 0.12 : 0;
+    const glow = Math.max(state.slotGlow[slot.id], hover ? 0.14 : 0, pulse);
+    const jolt = state.slotJolt[slot.id];
 
     context.save();
-    context.translate(slot.x, slot.y);
+    context.translate(slot.x + Math.sin(state.time * 46) * jolt * 4, slot.y);
 
     context.fillStyle = filled
       ? "rgba(255, 255, 255, 0.92)"
-      : "rgba(255, 255, 255, 0.66)";
+      : `rgba(255, 255, 255, ${0.66 + glow * 0.14})`;
     roundedRectPath(context, -60, -42, 120, 84, 28);
     context.fill();
 
     context.strokeStyle = filled
       ? "rgba(88, 71, 58, 0.14)"
       : highlight
-        ? hexToRgba(slot.color, 0.52 + pulse * 0.2)
-        : "rgba(88, 71, 58, 0.1)";
-    context.lineWidth = highlight ? 3 : 2;
+        ? hexToRgba(slot.color, 0.52 + glow * 0.26)
+        : hexToRgba(slot.color, 0.12 + glow * 0.22);
+    context.lineWidth = highlight || hover ? 3 : 2;
     roundedRectPath(context, -60, -42, 120, 84, 28);
     context.stroke();
 
-    context.globalAlpha = filled ? 0.12 : 0.22 + pulse * 0.12;
+    context.globalAlpha = filled ? 0.12 : 0.18 + glow * 0.2;
     context.fillStyle = slot.color;
     tracePieceShape(slot.kind, 0.64);
     context.fill();
@@ -822,6 +902,8 @@ function drawPieceShadow(piece) {
 }
 
 function drawPiece(piece) {
+  const hovered = state.hoveredId === piece.id;
+
   context.save();
   context.translate(piece.x, piece.y - piece.snap * 6);
   context.rotate(piece.rotation);
@@ -845,9 +927,16 @@ function drawPiece(piece) {
 
   context.globalAlpha = 1;
   context.strokeStyle = "rgba(88, 71, 58, 0.16)";
-  context.lineWidth = 2;
+  context.lineWidth = hovered ? 3 : 2;
   tracePieceShape(piece.kind);
   context.stroke();
+
+  if (hovered) {
+    context.strokeStyle = hexToRgba(piece.color, 0.34);
+    context.lineWidth = 6;
+    tracePieceShape(piece.kind, 1.08);
+    context.stroke();
+  }
 
   if (piece.kind === "flower") {
     context.fillStyle = "#fff8ef";
@@ -891,6 +980,19 @@ function drawChips() {
   });
 }
 
+function drawRipples() {
+  state.ripples.forEach((ripple) => {
+    context.save();
+    context.globalAlpha = ripple.alpha;
+    context.strokeStyle = ripple.color;
+    context.lineWidth = ripple.width;
+    context.beginPath();
+    context.arc(ripple.x, ripple.y, ripple.radius, 0, tau);
+    context.stroke();
+    context.restore();
+  });
+}
+
 function drawTarget() {
   if (!state.active) {
     return;
@@ -898,14 +1000,20 @@ function drawTarget() {
 
   context.save();
   context.translate(state.target.x, state.target.y);
-  context.globalAlpha = state.grabbedId !== null ? 0.16 : 0.22;
-  context.fillStyle = "#fff8ef";
+  const hoveredPiece =
+    state.hoveredId !== null ? state.pieces[state.hoveredId] : null;
+
+  context.globalAlpha =
+    state.grabbedId !== null ? 0.16 : hoveredPiece ? 0.28 : 0.22;
+  context.fillStyle = hoveredPiece ? hoveredPiece.color : "#fff8ef";
   context.beginPath();
   context.arc(0, 0, state.grabbedId !== null ? 16 : 18, 0, tau);
   context.fill();
 
   context.globalAlpha = 1;
-  context.strokeStyle = "rgba(88, 71, 58, 0.14)";
+  context.strokeStyle = hoveredPiece
+    ? hexToRgba(hoveredPiece.color, 0.34)
+    : "rgba(88, 71, 58, 0.14)";
   context.lineWidth = 1.5;
   context.beginPath();
   context.arc(0, 0, state.grabbedId !== null ? 16 : 18, 0, tau);
@@ -988,6 +1096,7 @@ function draw(timestamp) {
   sortedPieces.forEach(drawPiece);
   loosePieces.forEach(drawPieceShadow);
   drawPuffs();
+  drawRipples();
   drawChips();
   loosePieces.forEach(drawPiece);
   drawTarget();
@@ -1062,6 +1171,10 @@ canvas.addEventListener(
 );
 
 window.addEventListener("touchend", () => {
+  releasePiece();
+});
+
+window.addEventListener("touchcancel", () => {
   releasePiece();
 });
 
