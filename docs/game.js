@@ -85,8 +85,8 @@ function finishGame() {
   updateHud();
   setOverlay(
     "終了",
-    `今回 ${state.score} 点 / 最高 ${state.best} 点。もう一回遊ぶなら再挑戦。`,
-    "再挑戦",
+    `今回の得点は ${state.score} 点です。最高得点は ${state.best} 点です。もう一度遊ぶなら「もう一回」を押してください。`,
+    "もう一回",
   );
 }
 
@@ -329,7 +329,7 @@ function drawUi() {
   context.fillRect(24, 24, 212, 54);
   context.fillStyle = "#cbd5e1";
   context.font = "14px 'Zen Kaku Gothic New'";
-  context.fillText("シグナルを拾う / ノイズを避ける", 40, 57);
+  context.fillText("シグナルを集める / ノイズを避ける", 40, 57);
   context.restore();
 }
 
@@ -397,7 +397,7 @@ startButton.addEventListener("click", startGame);
 overlayButton.addEventListener("click", startGame);
 
 updateHud();
-setOverlay("SIGNAL LOOP", "開始するを押してスタート。シグナルは拾って、ノイズは避ける。", "遊ぶ");
+setOverlay("シグナルループ", "「はじめる」を押すと始まります。シグナルを集めて、ノイズを避けてください。", "はじめる");
 requestAnimationFrame((timestamp) => {
   state.lastTick = timestamp;
   draw(timestamp);

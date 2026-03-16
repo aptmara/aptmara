@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0f172a">
-    <title>SIGNAL LOOP | aptmara</title>
+    <title>シグナルループ | aptmara</title>
     <meta
       name="description"
       content="aptmara の GitHub プロフィールに隠した、小さなブラウザゲーム。"
@@ -25,30 +25,30 @@
 
       <main class="layout">
         <section class="hero panel">
-          <p class="eyebrow">隠しビルド // 遊べる試作</p>
-          <h1>SIGNAL LOOP</h1>
+          <p class="eyebrow">隠し要素 / ミニゲーム</p>
+          <h1>シグナルループ</h1>
           <p class="lede">
-            オレンジのシグナルを集めて、灰色のノイズを避ける 60 秒の小さなゲームです。
-            ゲームプログラマとしての「まず触って確かめる」感じを、そのまま置いています。
+            オレンジの粒を集め、灰色のノイズを避ける 60 秒ほどのミニゲームです。
+            まず触って感触を確かめる、という自分の作り方をそのまま小さなゲームにしました。
           </p>
 
           <div class="hero-actions">
-            <button id="start-button" class="cta" type="button">開始する</button>
+            <button id="start-button" class="cta" type="button">はじめる</button>
             <a class="ghost" href="https://github.com/aptmara/aptmara">プロフィールへ戻る</a>
           </div>
 
           <ul class="rules">
             <li><span>移動</span> 矢印キー / A D / マウス / タッチ</li>
-            <li><span>シグナル</span> スコア +1、短い加速演出</li>
-            <li><span>ノイズ</span> 安定度 -1、3 回で終了</li>
+            <li><span>シグナル</span> 1 点増えます</li>
+            <li><span>ノイズ</span> 安定度が 1 減ります。3 回で終了です</li>
           </ul>
         </section>
 
         <section class="board panel">
           <div class="board-top">
             <div>
-              <p class="eyebrow">プレイパネル</p>
-              <h2>きれいなシグナルを拾う。</h2>
+              <p class="eyebrow">ゲーム画面</p>
+              <h2>シグナルを集める。</h2>
             </div>
 
             <div class="stats">
@@ -61,7 +61,7 @@
                 <strong id="best-value">0</strong>
               </div>
               <div class="stat">
-                <span class="label">残り</span>
+                <span class="label">残り時間</span>
                 <strong id="time-value">60</strong>
               </div>
               <div class="stat danger">
@@ -72,12 +72,12 @@
           </div>
 
           <div class="canvas-frame">
-            <canvas id="game" width="720" height="480" aria-label="SIGNAL LOOP のゲーム画面"></canvas>
+            <canvas id="game" width="720" height="480" aria-label="シグナルループのゲーム画面"></canvas>
             <div class="overlay" id="overlay">
               <p class="overlay-kicker">準備完了</p>
-              <h3 id="overlay-title">SIGNAL LOOP</h3>
-              <p id="overlay-copy">開始するを押してスタート。シグナルは拾って、ノイズは避ける。</p>
-              <button id="overlay-button" class="cta" type="button">遊ぶ</button>
+              <h3 id="overlay-title">シグナルループ</h3>
+              <p id="overlay-copy">「はじめる」を押すと始まります。シグナルを集めて、ノイズを避けてください。</p>
+              <button id="overlay-button" class="cta" type="button">はじめる</button>
             </div>
           </div>
         </section>
