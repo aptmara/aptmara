@@ -11,53 +11,47 @@ const stateText = document.getElementById("state-text");
 
 const width = canvas.width;
 const height = canvas.height;
-const stagePadding = 58;
+const padding = 72;
+const centerX = width * 0.5;
+const centerY = height * 0.58;
 
 const state = {
   active: false,
+  holding: false,
+  charge: 0,
   time: 0,
   lastTick: performance.now(),
-  charge: 0,
-  charging: false,
-  ribbonClock: 0,
-  messageTimer: 0,
+  smudgeClock: 0,
   message: "まだ静か",
-  target: {
-    x: width * 0.5,
-    y: height * 0.56,
+  messageTimer: 0,
+  pointer: {
+    x: centerX,
+    y: centerY,
+    down: false,
   },
-  core: {
-    x: width * 0.5,
-    y: height * 0.56,
+  target: {
+    x: centerX,
+    y: centerY,
+  },
+  blob: {
+    x: centerX,
+    y: centerY,
     vx: 0,
     vy: 0,
-    rotation: 0,
+    tilt: 0,
     scaleX: 1,
     scaleY: 1,
-  },
-  camera: {
-    x: 0,
-    y: 0,
-    trauma: 0,
-  },
-  aim: {
-    x: 1,
-    y: 0,
-  },
-  pointer: {
-    down: false,
-    moved: false,
   },
   keys: {
     left: false,
     right: false,
     up: false,
     down: false,
-    charge: false,
+    hold: false,
   },
-  ribbons: [],
-  sparks: [],
-  rings: [],
+  smudges: [],
+  puffs: [],
+  bubbles: [],
 };
 
 function clamp(value, min, max) {
@@ -81,6 +75,12 @@ function normalize(x, y, fallbackX = 1, fallbackY = 0) {
   return { x: x / size, y: y / size };
 }
 
+function pulseDevice(duration) {
+  if (navigator.vibrate) {
+    navigator.vibrate(duration);
+  }
+}
+
 function setOverlay(title, copy, buttonLabel) {
   overlayTitle.textContent = title;
   overlayCopy.textContent = copy;
@@ -92,7 +92,7 @@ function hideOverlay() {
   overlay.hidden = true;
 }
 
-function setMessage(message, duration = 0.16) {
+function setMessage(message, duration = 0.18) {
   state.message = message;
   state.messageTimer = duration;
 }
@@ -102,220 +102,182 @@ function updateUi() {
   stateText.textContent = state.message;
 }
 
-function centerTarget() {
-  state.target.x = width * 0.5;
-  state.target.y = height * 0.56;
-}
-
-function resetMotion() {
-  centerTarget();
-  state.core.x = state.target.x;
-  state.core.y = state.target.y;
-  state.core.vx = 0;
-  state.core.vy = 0;
-  state.core.rotation = 0;
-  state.core.scaleX = 1;
-  state.core.scaleY = 1;
-  state.charge = 0;
-  state.charging = false;
+function resetBlob() {
+  state.target.x = centerX;
+  state.target.y = centerY;
+  state.pointer.x = centerX;
+  state.pointer.y = centerY;
   state.pointer.down = false;
-  state.camera.x = 0;
-  state.camera.y = 0;
-  state.camera.trauma = 0;
-  state.ribbons = [];
-  state.sparks = [];
-  state.rings = [];
-  setMessage("整えた", 0.45);
+  state.holding = false;
+  state.charge = 0;
+  state.smudgeClock = 0;
+  state.blob.x = centerX;
+  state.blob.y = centerY;
+  state.blob.vx = 0;
+  state.blob.vy = 0;
+  state.blob.tilt = 0;
+  state.blob.scaleX = 1;
+  state.blob.scaleY = 1;
+  state.smudges = [];
+  state.puffs = [];
+  state.bubbles = [];
+  setMessage("もどした", 0.4);
   updateUi();
 }
 
-function activateInteraction() {
+function activate() {
   if (state.active) {
     return;
   }
 
   state.active = true;
-  startButton.textContent = "整える";
+  startButton.textContent = "もどす";
   hideOverlay();
-  setMessage("触れている", 0.45);
+  setMessage("さわってる", 0.45);
   updateUi();
 }
 
 function ensureActive() {
   if (!state.active) {
-    activateInteraction();
+    activate();
   }
 }
 
-function spawnRing(x, y, strength) {
-  state.rings.push({
-    x,
-    y,
-    radius: 14 + strength * 20,
-    width: 2.4 + strength * 2.2,
-    life: 0.55 + strength * 0.26,
-    alpha: 0.28 + strength * 0.32,
-  });
-}
-
-function spawnSparks(x, y, directionX, directionY, amount, strength) {
-  for (let index = 0; index < amount; index += 1) {
-    const angle =
-      Math.atan2(directionY, directionX) +
-      (Math.random() - 0.5) * (0.9 + (1 - strength) * 1.1);
-    const speed = 160 + Math.random() * 340 + strength * 260;
-
-    state.sparks.push({
+function emitPuffs(x, y, strength) {
+  const count = 3 + Math.round(strength * 5);
+  for (let index = 0; index < count; index += 1) {
+    const angle = (Math.PI * 2 * index) / count + Math.random() * 0.22;
+    const speed = 20 + Math.random() * 80 + strength * 90;
+    state.puffs.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      length: 10 + Math.random() * 28 + strength * 20,
-      life: 0.18 + Math.random() * 0.24 + strength * 0.2,
-      alpha: 0.28 + Math.random() * 0.32,
+      vy: Math.sin(angle) * speed * 0.7,
+      radius: 12 + Math.random() * 14 + strength * 10,
+      life: 0.22 + Math.random() * 0.18 + strength * 0.1,
+      alpha: 0.28 + Math.random() * 0.18,
+      color: index % 2 === 0 ? "#fff7ef" : "#f7cfbe",
     });
   }
 }
 
-function pulse(strength) {
-  const direction = normalize(
-    state.target.x - state.core.x,
-    state.target.y - state.core.y,
-    state.aim.x,
-    state.aim.y,
-  );
-
-  state.aim.x = direction.x;
-  state.aim.y = direction.y;
-
-  const impulse = 240 + strength * 780;
-  state.core.vx += direction.x * impulse;
-  state.core.vy += direction.y * impulse;
-  state.camera.trauma = clamp(
-    state.camera.trauma + 0.18 + strength * 0.42,
-    0,
-    1,
-  );
-
-  spawnRing(state.core.x, state.core.y, strength);
-  spawnRing(
-    state.core.x - direction.x * 8,
-    state.core.y - direction.y * 8,
-    strength * 0.6,
-  );
-  spawnSparks(
-    state.core.x,
-    state.core.y,
-    direction.x,
-    direction.y,
-    12 + Math.round(strength * 18),
-    strength,
-  );
-
-  if (strength > 0.82) {
-    setMessage("強く弾いた", 0.46);
-  } else if (strength > 0.42) {
-    setMessage("弾いた", 0.34);
-  } else {
-    setMessage("軽く弾いた", 0.24);
+function emitBubbles(x, y, strength) {
+  const count = 2 + Math.round(strength * 4);
+  for (let index = 0; index < count; index += 1) {
+    state.bubbles.push({
+      x: x + (Math.random() - 0.5) * 36,
+      y: y + (Math.random() - 0.5) * 16,
+      vx: (Math.random() - 0.5) * 42,
+      vy: -30 - Math.random() * 90 - strength * 80,
+      radius: 5 + Math.random() * 8,
+      life: 0.45 + Math.random() * 0.3,
+      alpha: 0.24 + Math.random() * 0.14,
+    });
   }
 }
 
-function beginCharge() {
-  ensureActive();
-  state.pointer.down = true;
-  state.charging = true;
-  setMessage("ためている", 0.12);
+function addSmudge(speed) {
+  state.smudges.push({
+    x: state.blob.x,
+    y: state.blob.y,
+    width: 70 + speed * 0.045 + state.charge * 26,
+    height: 24 + speed * 0.012 + state.charge * 12,
+    angle: state.blob.tilt,
+    life: 0.2 + state.charge * 0.18,
+    alpha: 0.08 + Math.min(0.1, speed * 0.00008 + state.charge * 0.1),
+  });
 }
 
-function endCharge() {
-  if (!state.charging) {
+function beginHold() {
+  ensureActive();
+  state.pointer.down = true;
+  state.holding = true;
+  setMessage("ためてる", 0.12);
+}
+
+function endHold() {
+  if (!state.holding) {
     state.pointer.down = false;
     return;
   }
 
-  const strength = Math.max(0.18, state.charge);
+  const stretchX = state.target.x - state.blob.x;
+  const stretchY = state.target.y - state.blob.y;
+  const direction = normalize(stretchX, stretchY, state.blob.vx, state.blob.vy);
+  const stretch = length(stretchX, stretchY);
+  const boost = 140 + state.charge * 420 + stretch * 1.25;
+
+  state.blob.vx += direction.x * boost;
+  state.blob.vy += direction.y * boost;
   state.pointer.down = false;
-  state.charging = false;
+  state.holding = false;
+
+  emitPuffs(state.blob.x, state.blob.y, state.charge);
+  emitBubbles(state.blob.x, state.blob.y, state.charge);
+  pulseDevice(8 + Math.round(state.charge * 10));
+
+  if (state.charge > 0.72) {
+    setMessage("ぷにっと強く返った", 0.42);
+  } else if (state.charge > 0.32) {
+    setMessage("ぷにっと返った", 0.34);
+  } else {
+    setMessage("軽く返った", 0.24);
+  }
+
   state.charge = 0;
-  pulse(strength);
 }
 
 function moveTargetTo(clientX, clientY) {
   const rect = canvas.getBoundingClientRect();
   const ratioX = width / rect.width;
   const ratioY = height / rect.height;
-
-  state.target.x = clamp(
-    (clientX - rect.left) * ratioX,
-    stagePadding,
-    width - stagePadding,
-  );
-  state.target.y = clamp(
-    (clientY - rect.top) * ratioY,
-    stagePadding,
-    height - stagePadding,
-  );
-  state.pointer.moved = true;
+  state.pointer.x = (clientX - rect.left) * ratioX;
+  state.pointer.y = (clientY - rect.top) * ratioY;
+  state.target.x = clamp(state.pointer.x, padding, width - padding);
+  state.target.y = clamp(state.pointer.y, padding, height - padding);
 }
 
-function collideWithBounds() {
-  const minX = stagePadding;
-  const maxX = width - stagePadding;
-  const minY = stagePadding;
-  const maxY = height - stagePadding;
+function bounceBounds() {
+  const minX = padding;
+  const maxX = width - padding;
+  const minY = padding;
+  const maxY = height - padding;
 
-  if (state.core.x < minX) {
-    state.core.x = minX;
-    if (state.core.vx < 0) {
-      state.core.vx = -state.core.vx * 0.54;
-      state.camera.trauma = clamp(state.camera.trauma + 0.08, 0, 1);
-      spawnRing(state.core.x, state.core.y, 0.2);
-      spawnSparks(state.core.x, state.core.y, 1, 0, 7, 0.2);
+  if (state.blob.x < minX) {
+    state.blob.x = minX;
+    if (state.blob.vx < 0) {
+      state.blob.vx = -state.blob.vx * 0.52;
+      emitPuffs(state.blob.x, state.blob.y, 0.12);
+      pulseDevice(4);
     }
   }
 
-  if (state.core.x > maxX) {
-    state.core.x = maxX;
-    if (state.core.vx > 0) {
-      state.core.vx = -state.core.vx * 0.54;
-      state.camera.trauma = clamp(state.camera.trauma + 0.08, 0, 1);
-      spawnRing(state.core.x, state.core.y, 0.2);
-      spawnSparks(state.core.x, state.core.y, -1, 0, 7, 0.2);
+  if (state.blob.x > maxX) {
+    state.blob.x = maxX;
+    if (state.blob.vx > 0) {
+      state.blob.vx = -state.blob.vx * 0.52;
+      emitPuffs(state.blob.x, state.blob.y, 0.12);
+      pulseDevice(4);
     }
   }
 
-  if (state.core.y < minY) {
-    state.core.y = minY;
-    if (state.core.vy < 0) {
-      state.core.vy = -state.core.vy * 0.54;
-      state.camera.trauma = clamp(state.camera.trauma + 0.08, 0, 1);
-      spawnRing(state.core.x, state.core.y, 0.2);
-      spawnSparks(state.core.x, state.core.y, 0, 1, 7, 0.2);
+  if (state.blob.y < minY) {
+    state.blob.y = minY;
+    if (state.blob.vy < 0) {
+      state.blob.vy = -state.blob.vy * 0.52;
+      emitPuffs(state.blob.x, state.blob.y, 0.12);
+      pulseDevice(4);
     }
   }
 
-  if (state.core.y > maxY) {
-    state.core.y = maxY;
-    if (state.core.vy > 0) {
-      state.core.vy = -state.core.vy * 0.54;
-      state.camera.trauma = clamp(state.camera.trauma + 0.08, 0, 1);
-      spawnRing(state.core.x, state.core.y, 0.2);
-      spawnSparks(state.core.x, state.core.y, 0, -1, 7, 0.2);
+  if (state.blob.y > maxY) {
+    state.blob.y = maxY;
+    if (state.blob.vy > 0) {
+      state.blob.vy = -state.blob.vy * 0.52;
+      emitPuffs(state.blob.x, state.blob.y, 0.12);
+      pulseDevice(4);
     }
   }
-}
-
-function pushRibbon(speed) {
-  state.ribbons.push({
-    x: state.core.x,
-    y: state.core.y,
-    rotation: state.core.rotation,
-    width: 18 + speed * 0.018 + state.charge * 22,
-    length: 24 + speed * 0.034 + state.charge * 34,
-    life: 0.28 + state.charge * 0.2,
-    alpha: 0.06 + Math.min(0.18, speed * 0.00022 + state.charge * 0.18),
-  });
 }
 
 function updateMessage(dt, speed) {
@@ -328,18 +290,16 @@ function updateMessage(dt, speed) {
 
   if (!state.active) {
     state.message = "まだ静か";
-  } else if (state.charging && state.charge > 0.78) {
-    state.message = "かなりためている";
-  } else if (state.charging) {
-    state.message = "ためている";
-  } else if (speed > 620) {
-    state.message = "鋭く流れている";
-  } else if (speed > 240) {
-    state.message = "滑っている";
-  } else if (speed > 60) {
-    state.message = "戻っている";
+  } else if (state.holding && state.charge > 0.76) {
+    state.message = "かなりたまってる";
+  } else if (state.holding) {
+    state.message = "ためてる";
+  } else if (speed > 420) {
+    state.message = "するっと流れてる";
+  } else if (speed > 150) {
+    state.message = "ふわっと戻る";
   } else {
-    state.message = "静か";
+    state.message = "おちついた";
   }
 }
 
@@ -347,230 +307,217 @@ function update(dt) {
   state.time += dt;
 
   if (state.active) {
-    const keyboardX = Number(state.keys.right) - Number(state.keys.left);
-    const keyboardY = Number(state.keys.down) - Number(state.keys.up);
-    const keyboardLength = length(keyboardX, keyboardY);
+    const inputX = Number(state.keys.right) - Number(state.keys.left);
+    const inputY = Number(state.keys.down) - Number(state.keys.up);
+    const inputLength = length(inputX, inputY);
 
-    if (keyboardLength > 0) {
-      const normalizedX = keyboardX / keyboardLength;
-      const normalizedY = keyboardY / keyboardLength;
+    if (inputLength > 0) {
+      const normalizedX = inputX / inputLength;
+      const normalizedY = inputY / inputLength;
       state.target.x = clamp(
-        state.target.x + normalizedX * 440 * dt,
-        stagePadding,
-        width - stagePadding,
+        state.target.x + normalizedX * 360 * dt,
+        padding,
+        width - padding,
       );
       state.target.y = clamp(
-        state.target.y + normalizedY * 440 * dt,
-        stagePadding,
-        height - stagePadding,
+        state.target.y + normalizedY * 360 * dt,
+        padding,
+        height - padding,
       );
     }
 
-    const aimDirection = normalize(
-      state.target.x - state.core.x,
-      state.target.y - state.core.y,
-      state.aim.x,
-      state.aim.y,
-    );
-    state.aim.x = aimDirection.x;
-    state.aim.y = aimDirection.y;
-
-    if (state.charging || state.keys.charge) {
-      state.charge = clamp(state.charge + dt * 1.8, 0, 1);
-      state.charging = true;
+    if (state.holding || state.keys.hold) {
+      state.holding = true;
+      state.charge = clamp(state.charge + dt * 1.45, 0, 1);
     } else {
-      state.charge = clamp(state.charge - dt * 2.6, 0, 1);
+      state.charge = clamp(state.charge - dt * 2.1, 0, 1);
     }
 
-    const spring = 16.5;
-    const damping = 7.9;
+    const spring = state.holding ? 16.5 : 10.6;
+    const damping = state.holding ? 8.4 : 9.4;
+    const accelerationX =
+      (state.target.x - state.blob.x) * spring - state.blob.vx * damping;
+    const accelerationY =
+      (state.target.y - state.blob.y) * spring - state.blob.vy * damping;
 
-    let accelerationX =
-      (state.target.x - state.core.x) * spring - state.core.vx * damping;
-    let accelerationY =
-      (state.target.y - state.core.y) * spring - state.core.vy * damping;
+    state.blob.vx += accelerationX * dt;
+    state.blob.vy += accelerationY * dt;
 
-    if (state.charging) {
-      const drag = 180 + state.charge * 520;
-      accelerationX -= aimDirection.x * drag;
-      accelerationY -= aimDirection.y * drag;
-    }
-
-    state.core.vx += accelerationX * dt;
-    state.core.vy += accelerationY * dt;
-
-    const speed = length(state.core.vx, state.core.vy);
-    const maxSpeed = 1180;
+    const maxSpeed = 860;
+    const speed = length(state.blob.vx, state.blob.vy);
     if (speed > maxSpeed) {
       const ratio = maxSpeed / speed;
-      state.core.vx *= ratio;
-      state.core.vy *= ratio;
+      state.blob.vx *= ratio;
+      state.blob.vy *= ratio;
     }
 
-    state.core.x += state.core.vx * dt;
-    state.core.y += state.core.vy * dt;
-    collideWithBounds();
+    state.blob.x += state.blob.vx * dt;
+    state.blob.y += state.blob.vy * dt;
+    bounceBounds();
 
-    const updatedSpeed = length(state.core.vx, state.core.vy);
-    const rotationTarget = clamp(
-      state.core.vx * 0.00112 + (state.target.x - state.core.x) * 0.00035,
-      -0.62,
-      0.62,
+    const updatedSpeed = length(state.blob.vx, state.blob.vy);
+    const stretch = Math.min(0.18, updatedSpeed * 0.00016);
+    const tension = Math.min(
+      0.16,
+      length(state.target.x - state.blob.x, state.target.y - state.blob.y) *
+        0.00022,
     );
-    state.core.rotation = damp(state.core.rotation, rotationTarget, 14, dt);
+    const press = state.holding ? 0.08 + state.charge * 0.18 : 0;
 
-    const stretch =
-      Math.min(0.24, updatedSpeed * 0.00022) + state.charge * 0.13;
-    const squeeze =
-      Math.min(0.12, updatedSpeed * 0.00012) + state.charge * 0.08;
-    state.core.scaleX = damp(state.core.scaleX, 1 + stretch, 15, dt);
-    state.core.scaleY = damp(state.core.scaleY, 1 - squeeze, 15, dt);
-
-    state.camera.trauma = Math.max(0, state.camera.trauma - dt * 1.8);
-    state.camera.x = damp(
-      state.camera.x,
-      (state.target.x - width * 0.5) * 0.018 + state.core.vx * 0.01,
-      6,
+    state.blob.scaleX = damp(
+      state.blob.scaleX,
+      1 + stretch + tension * 0.5 + press * 0.4,
+      12,
       dt,
     );
-    state.camera.y = damp(
-      state.camera.y,
-      (state.target.y - height * 0.5) * 0.018 + state.core.vy * 0.01,
-      6,
+    state.blob.scaleY = damp(
+      state.blob.scaleY,
+      1 - stretch * 0.45 - press - tension * 0.2,
+      12,
+      dt,
+    );
+    state.blob.tilt = damp(
+      state.blob.tilt,
+      clamp(state.blob.vx * 0.0011, -0.28, 0.28),
+      10,
       dt,
     );
 
-    state.ribbonClock += dt;
-    if (
-      (updatedSpeed > 16 || state.charge > 0.02) &&
-      state.ribbonClock >= 0.014
-    ) {
-      state.ribbonClock = 0;
-      pushRibbon(updatedSpeed);
+    state.smudgeClock += dt;
+    if ((updatedSpeed > 120 || state.holding) && state.smudgeClock >= 0.026) {
+      state.smudgeClock = 0;
+      addSmudge(updatedSpeed);
     }
 
     updateMessage(dt, updatedSpeed);
   } else {
-    state.camera.trauma = 0;
-    state.core.rotation = damp(state.core.rotation, 0, 8, dt);
-    state.core.scaleX = damp(state.core.scaleX, 1, 8, dt);
-    state.core.scaleY = damp(state.core.scaleY, 1, 8, dt);
+    state.blob.scaleX = damp(state.blob.scaleX, 1, 8, dt);
+    state.blob.scaleY = damp(state.blob.scaleY, 1, 8, dt);
+    state.blob.tilt = damp(state.blob.tilt, 0, 8, dt);
   }
 
-  state.ribbons = state.ribbons.filter((ribbon) => {
-    ribbon.life -= dt;
-    ribbon.alpha *= 0.965;
-    ribbon.length *= 0.992;
-    ribbon.width *= 0.99;
-    return ribbon.life > 0.01 && ribbon.alpha > 0.01;
+  state.smudges = state.smudges.filter((smudge) => {
+    smudge.life -= dt;
+    smudge.alpha *= 0.965;
+    smudge.width *= 0.99;
+    smudge.height *= 0.995;
+    return smudge.life > 0.01 && smudge.alpha > 0.01;
   });
 
-  state.sparks = state.sparks.filter((spark) => {
-    spark.life -= dt;
-    spark.x += spark.vx * dt;
-    spark.y += spark.vy * dt;
-    spark.vx *= 0.94;
-    spark.vy *= 0.94;
-    return spark.life > 0;
+  state.puffs = state.puffs.filter((puff) => {
+    puff.life -= dt;
+    puff.x += puff.vx * dt;
+    puff.y += puff.vy * dt;
+    puff.vx *= 0.92;
+    puff.vy *= 0.92;
+    puff.radius += dt * 18;
+    puff.alpha *= 0.95;
+    return puff.life > 0;
   });
 
-  state.rings = state.rings.filter((ring) => {
-    ring.life -= dt;
-    ring.radius += dt * 220;
-    ring.alpha *= 0.958;
-    return ring.life > 0 && ring.alpha > 0.01;
+  state.bubbles = state.bubbles.filter((bubble) => {
+    bubble.life -= dt;
+    bubble.x += bubble.vx * dt;
+    bubble.y += bubble.vy * dt;
+    bubble.vx *= 0.95;
+    bubble.vy *= 0.95;
+    bubble.alpha *= 0.96;
+    return bubble.life > 0 && bubble.alpha > 0.01;
   });
 
   updateUi();
 }
 
-function drawField(time) {
-  context.fillStyle = "#050403";
+function drawBackground(time) {
+  context.fillStyle = "#c6e7eb";
   context.fillRect(0, 0, width, height);
 
-  context.save();
-  context.strokeStyle = "rgba(255, 238, 222, 0.06)";
+  context.fillStyle = "rgba(255, 255, 255, 0.24)";
+  context.fillRect(28, 28, width - 56, height - 56);
+
+  context.fillStyle = "rgba(255, 255, 255, 0.16)";
+  for (let row = 0; row < 7; row += 1) {
+    for (let column = 0; column < 9; column += 1) {
+      const x = 86 + column * 94 + Math.sin(time * 0.7 + row * 0.8) * 2;
+      const y = 92 + row * 68 + Math.cos(time * 0.8 + column * 0.6) * 2;
+      context.beginPath();
+      context.arc(x, y, 5, 0, Math.PI * 2);
+      context.fill();
+    }
+  }
+
+  context.strokeStyle = "rgba(88, 71, 58, 0.08)";
   context.lineWidth = 1;
-
-  for (let index = 0; index < 14; index += 1) {
-    const y = 42 + index * 40 + Math.sin(time * 0.8 + index * 0.38) * 4;
+  for (let row = 0; row < 6; row += 1) {
+    const y = 96 + row * 74;
     context.beginPath();
-    context.moveTo(30, y);
-    context.bezierCurveTo(
-      width * 0.28,
-      y + Math.sin(time + index) * 5,
-      width * 0.72,
-      y - Math.cos(time * 0.8 + index) * 5,
-      width - 30,
-      y,
-    );
+    context.moveTo(76, y);
+    context.quadraticCurveTo(width * 0.5, y + 8, width - 76, y);
     context.stroke();
   }
 
-  for (let index = 0; index < 8; index += 1) {
-    const x = 80 + index * 114 + Math.sin(time * 0.45 + index) * 8;
-    context.beginPath();
-    context.moveTo(x, 24);
-    context.lineTo(x, height - 24);
-    context.stroke();
-  }
-
-  context.restore();
-
-  const glow = context.createLinearGradient(0, 0, 0, height);
-  glow.addColorStop(0, "rgba(255, 106, 19, 0.08)");
-  glow.addColorStop(0.3, "rgba(255, 106, 19, 0)");
-  glow.addColorStop(0.7, "rgba(255, 106, 19, 0)");
-  glow.addColorStop(1, "rgba(255, 106, 19, 0.07)");
-  context.fillStyle = glow;
-  context.fillRect(0, 0, width, height);
-
-  context.strokeStyle = "rgba(255, 238, 222, 0.12)";
-  context.strokeRect(22.5, 22.5, width - 45, height - 45);
+  context.strokeStyle = "rgba(88, 71, 58, 0.12)";
+  context.lineWidth = 2;
+  context.strokeRect(28, 28, width - 56, height - 56);
 }
 
 function drawTarget() {
-  const radius = 18 + state.charge * 26;
-
-  context.save();
-  context.translate(state.target.x, state.target.y);
-
-  context.strokeStyle = `rgba(255, 106, 19, ${0.18 + state.charge * 0.44})`;
-  context.lineWidth = 1.5 + state.charge * 1.4;
-  context.beginPath();
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.stroke();
-
-  context.strokeStyle = "rgba(255, 238, 222, 0.26)";
-  context.lineWidth = 1;
-  context.beginPath();
-  context.moveTo(-8, 0);
-  context.lineTo(8, 0);
-  context.moveTo(0, -8);
-  context.lineTo(0, 8);
-  context.stroke();
-
-  context.restore();
-}
-
-function drawTension() {
   const distance = length(
-    state.target.x - state.core.x,
-    state.target.y - state.core.y,
+    state.target.x - state.blob.x,
+    state.target.y - state.blob.y,
   );
 
-  if (distance < 14 && state.charge < 0.03) {
+  if (!state.holding && distance < 20) {
     return;
   }
 
   context.save();
-  context.strokeStyle = `rgba(255, 106, 19, ${0.08 + state.charge * 0.32})`;
-  context.lineWidth = 1.2 + state.charge * 1.8;
+  context.translate(state.target.x, state.target.y);
+  context.fillStyle = "rgba(255, 255, 255, 0.46)";
   context.beginPath();
-  context.moveTo(state.core.x, state.core.y);
+  context.arc(0, 0, 18 + state.charge * 16, 0, Math.PI * 2);
+  context.fill();
+
+  context.strokeStyle = "rgba(88, 71, 58, 0.18)";
+  context.lineWidth = 1.5;
+  context.beginPath();
+  context.arc(0, 0, 18 + state.charge * 16, 0, Math.PI * 2);
+  context.stroke();
+  context.restore();
+}
+
+function drawTether() {
+  const distance = length(
+    state.target.x - state.blob.x,
+    state.target.y - state.blob.y,
+  );
+
+  if (!state.holding && distance < 18) {
+    return;
+  }
+
+  context.save();
+  context.lineCap = "round";
+
+  context.strokeStyle = "rgba(255, 255, 255, 0.46)";
+  context.lineWidth = 18 + state.charge * 16;
+  context.beginPath();
+  context.moveTo(state.blob.x, state.blob.y);
   context.quadraticCurveTo(
-    (state.core.x + state.target.x) * 0.5 + state.aim.y * 12,
-    (state.core.y + state.target.y) * 0.5 - state.aim.x * 12,
+    (state.blob.x + state.target.x) * 0.5,
+    (state.blob.y + state.target.y) * 0.5 - 10,
+    state.target.x,
+    state.target.y,
+  );
+  context.stroke();
+
+  context.strokeStyle = `rgba(239, 123, 99, ${0.16 + state.charge * 0.18})`;
+  context.lineWidth = 8 + state.charge * 10;
+  context.beginPath();
+  context.moveTo(state.blob.x, state.blob.y);
+  context.quadraticCurveTo(
+    (state.blob.x + state.target.x) * 0.5,
+    (state.blob.y + state.target.y) * 0.5 - 8,
     state.target.x,
     state.target.y,
   );
@@ -578,125 +525,117 @@ function drawTension() {
   context.restore();
 }
 
-function drawRibbons() {
-  state.ribbons.forEach((ribbon) => {
+function drawSmudges() {
+  state.smudges.forEach((smudge) => {
     context.save();
-    context.translate(ribbon.x, ribbon.y);
-    context.rotate(ribbon.rotation);
-    context.fillStyle = `rgba(255, 106, 19, ${ribbon.alpha})`;
-    context.fillRect(
-      -ribbon.length * 0.78,
-      -ribbon.width * 0.5,
-      ribbon.length,
-      ribbon.width,
-    );
-
-    context.fillStyle = `rgba(255, 239, 226, ${ribbon.alpha * 0.35})`;
-    context.fillRect(
-      -ribbon.length * 0.58,
-      -ribbon.width * 0.16,
-      ribbon.length * 0.56,
-      ribbon.width * 0.32,
-    );
+    context.translate(smudge.x, smudge.y);
+    context.rotate(smudge.angle);
+    context.fillStyle = `rgba(239, 123, 99, ${smudge.alpha})`;
+    context.beginPath();
+    context.ellipse(0, 0, smudge.width, smudge.height, 0, 0, Math.PI * 2);
+    context.fill();
     context.restore();
   });
 }
 
-function drawRings() {
-  state.rings.forEach((ring) => {
+function drawPuffs() {
+  state.puffs.forEach((puff) => {
     context.save();
-    context.strokeStyle = `rgba(255, 106, 19, ${ring.alpha})`;
-    context.lineWidth = ring.width;
+    context.globalAlpha = puff.alpha;
+    context.fillStyle = puff.color;
     context.beginPath();
-    context.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+    context.arc(puff.x, puff.y, puff.radius, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  });
+}
+
+function drawBubbles() {
+  state.bubbles.forEach((bubble) => {
+    context.save();
+    context.globalAlpha = bubble.alpha;
+    context.fillStyle = "rgba(255, 255, 255, 0.75)";
+    context.beginPath();
+    context.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+    context.fill();
+
+    context.strokeStyle = "rgba(88, 71, 58, 0.12)";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
     context.stroke();
     context.restore();
   });
 }
 
-function drawSparks() {
-  state.sparks.forEach((spark) => {
-    const speed = length(spark.vx, spark.vy);
-    const direction = normalize(spark.vx, spark.vy, 1, 0);
-
-    context.save();
-    context.strokeStyle = `rgba(255, 228, 206, ${spark.alpha * clamp(spark.life * 1.8, 0, 1)})`;
-    context.lineWidth = 1.4;
-    context.beginPath();
-    context.moveTo(spark.x, spark.y);
-    context.lineTo(
-      spark.x - direction.x * (spark.length + speed * 0.012),
-      spark.y - direction.y * (spark.length + speed * 0.012),
-    );
-    context.stroke();
-    context.restore();
-  });
-}
-
-function drawCore() {
-  const speed = length(state.core.vx, state.core.vy);
-  const glowAlpha = 0.18 + Math.min(0.18, speed * 0.0002) + state.charge * 0.18;
+function drawShadow() {
+  const speed = length(state.blob.vx, state.blob.vy);
+  const widthScale = 58 + speed * 0.03 + state.charge * 24;
+  const heightScale = 20 + speed * 0.008 + state.charge * 8;
 
   context.save();
-  context.translate(state.core.x, state.core.y);
-  context.rotate(state.core.rotation);
-  context.scale(state.core.scaleX, state.core.scaleY);
-
-  context.fillStyle = `rgba(255, 106, 19, ${glowAlpha})`;
-  context.fillRect(-82, -18, 164, 36);
-
-  context.fillStyle = "#ff6a13";
+  context.translate(state.blob.x, state.blob.y + 34);
+  context.fillStyle = "rgba(88, 71, 58, 0.14)";
   context.beginPath();
-  context.moveTo(-56, -17);
-  context.lineTo(28, -17);
-  context.lineTo(50, 0);
-  context.lineTo(28, 17);
-  context.lineTo(-56, 17);
-  context.lineTo(-40, 0);
+  context.ellipse(0, 0, widthScale, heightScale, 0, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+}
+
+function drawBlob() {
+  context.save();
+  context.translate(state.blob.x, state.blob.y);
+  context.rotate(state.blob.tilt);
+  context.scale(state.blob.scaleX, state.blob.scaleY);
+
+  context.fillStyle = "#ef7b63";
+  context.beginPath();
+  context.moveTo(-72, 0);
+  context.bezierCurveTo(-76, -38, -18, -62, 46, -42);
+  context.bezierCurveTo(82, -30, 88, 20, 44, 40);
+  context.bezierCurveTo(-6, 62, -68, 42, -72, 0);
   context.closePath();
   context.fill();
 
-  context.fillStyle = "#ffd7bb";
+  context.fillStyle = "#ffd8ca";
   context.beginPath();
-  context.moveTo(-34, -5);
-  context.lineTo(16, -5);
-  context.lineTo(24, 0);
-  context.lineTo(16, 5);
-  context.lineTo(-34, 5);
+  context.moveTo(-34, -16);
+  context.bezierCurveTo(-14, -34, 24, -34, 44, -14);
+  context.bezierCurveTo(18, -6, -8, -2, -34, -16);
   context.closePath();
   context.fill();
 
-  context.strokeStyle = "rgba(255, 240, 229, 0.38)";
-  context.lineWidth = 1.2;
+  context.fillStyle = "#fff6ef";
   context.beginPath();
-  context.moveTo(-56, -17);
-  context.lineTo(28, -17);
-  context.lineTo(50, 0);
-  context.lineTo(28, 17);
-  context.lineTo(-56, 17);
-  context.lineTo(-40, 0);
+  context.ellipse(-6, -10, 22, 10, -0.2, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = "rgba(88, 71, 58, 0.14)";
+  context.beginPath();
+  context.ellipse(26, 18, 18, 8, -0.18, 0, Math.PI * 2);
+  context.fill();
+
+  context.strokeStyle = "rgba(88, 71, 58, 0.16)";
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(-72, 0);
+  context.bezierCurveTo(-76, -38, -18, -62, 46, -42);
+  context.bezierCurveTo(82, -30, 88, 20, 44, 40);
+  context.bezierCurveTo(-6, 62, -68, 42, -72, 0);
   context.closePath();
   context.stroke();
   context.restore();
 }
 
 function draw(timestamp) {
-  const time = timestamp / 1000;
-  const shake = state.camera.trauma * state.camera.trauma * 8;
-  const jitterX = (Math.random() - 0.5) * shake;
-  const jitterY = (Math.random() - 0.5) * shake;
-
-  context.clearRect(0, 0, width, height);
-  context.save();
-  context.translate(-state.camera.x + jitterX, -state.camera.y + jitterY);
-  drawField(time);
+  drawBackground(timestamp / 1000);
+  drawSmudges();
+  drawPuffs();
+  drawBubbles();
   drawTarget();
-  drawTension();
-  drawRibbons();
-  drawRings();
-  drawSparks();
-  drawCore();
-  context.restore();
+  drawTether();
+  drawShadow();
+  drawBlob();
 }
 
 function tick(timestamp) {
@@ -709,11 +648,11 @@ function tick(timestamp) {
 
 function startOrReset() {
   if (!state.active) {
-    activateInteraction();
+    activate();
     return;
   }
 
-  resetMotion();
+  resetBlob();
 }
 
 canvas.addEventListener("mousemove", (event) => {
@@ -725,13 +664,12 @@ canvas.addEventListener("mousemove", (event) => {
 });
 
 canvas.addEventListener("mousedown", (event) => {
-  ensureActive();
   moveTargetTo(event.clientX, event.clientY);
-  beginCharge();
+  beginHold();
 });
 
 window.addEventListener("mouseup", () => {
-  endCharge();
+  endHold();
 });
 
 canvas.addEventListener(
@@ -741,9 +679,8 @@ canvas.addEventListener(
       return;
     }
 
-    ensureActive();
     moveTargetTo(event.touches[0].clientX, event.touches[0].clientY);
-    beginCharge();
+    beginHold();
   },
   { passive: true },
 );
@@ -751,7 +688,7 @@ canvas.addEventListener(
 canvas.addEventListener(
   "touchmove",
   (event) => {
-    if (!state.active || !event.touches[0]) {
+    if (!event.touches[0]) {
       return;
     }
 
@@ -761,7 +698,7 @@ canvas.addEventListener(
 );
 
 window.addEventListener("touchend", () => {
-  endCharge();
+  endHold();
 });
 
 window.addEventListener("keydown", (event) => {
@@ -792,13 +729,13 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (key === " ") {
-    state.keys.charge = true;
-    beginCharge();
+    state.keys.hold = true;
+    beginHold();
     event.preventDefault();
   }
 
   if (key === "enter" && !state.active) {
-    activateInteraction();
+    activate();
     event.preventDefault();
   }
 });
@@ -823,8 +760,8 @@ window.addEventListener("keyup", (event) => {
   }
 
   if (key === " ") {
-    state.keys.charge = false;
-    endCharge();
+    state.keys.hold = false;
+    endHold();
     event.preventDefault();
   }
 });
@@ -835,8 +772,8 @@ overlayButton.addEventListener("click", startOrReset);
 updateUi();
 setOverlay(
   "シグナルループ",
-  "押して、ためて、離す。反応だけ見てください。",
-  "触る",
+  "ぷにっと引いて、離したときの返りだけを見ています。",
+  "さわる",
 );
 
 requestAnimationFrame((timestamp) => {
