@@ -1,6 +1,6 @@
 <svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">aptmara profile header</title>
-  <desc id="desc">Readable industrial style banner for aptmara GitHub profile.</desc>
+  <title id="title">aptmara プロフィールヘッダー</title>
+  <desc id="desc">日本語主体の工業調 GitHub プロフィールヘッダー。</desc>
   <defs>
     <linearGradient id="paper" x1="54" y1="30" x2="1160" y2="290" gradientUnits="userSpaceOnUse">
       <stop stop-color="#F8FAFC"/>
@@ -26,31 +26,31 @@
   <rect x="754" y="16" width="430" height="288" rx="30" fill="url(#night)"/>
   <path d="M716 16H780L692 304H628L716 16Z" fill="#F97316"/>
   <rect x="76" y="58" width="10" height="182" rx="5" fill="#F97316"/>
-  <rect x="104" y="58" width="112" height="30" rx="15" fill="#0F172A"/>
-  <text x="160" y="78" text-anchor="middle" fill="#F8FAFC" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5">PROFILE</text>
+  <rect x="104" y="58" width="132" height="30" rx="15" fill="#0F172A"/>
+  <text x="170" y="78" text-anchor="middle" fill="#F8FAFC" font-family="sans-serif" font-size="13" letter-spacing="1.4">プロフィール</text>
 
-  <text x="104" y="146" fill="#0F172A" font-family="Cambria, Georgia, serif" font-size="84" font-weight="700" letter-spacing="1.4">APTMA</text>
-  <text x="104" y="192" fill="#1E293B" font-family="Consolas, 'Courier New', monospace" font-size="22" font-weight="700" letter-spacing="3.4">PROTOTYPE WORKS / TOOLING / PLAYABLE SYSTEMS</text>
+  <text x="104" y="140" fill="#0F172A" font-family="sans-serif" font-size="72" font-weight="700" letter-spacing="1.2">APTMA</text>
+  <text x="104" y="188" fill="#1E293B" font-family="sans-serif" font-size="25" font-weight="700" letter-spacing="0.8">ゲーム / ツール / プレイアブル試作</text>
   <rect x="104" y="214" width="372" height="4" rx="2" fill="#F97316"/>
-  <text x="104" y="248" fill="#334155" font-family="Consolas, 'Courier New', monospace" font-size="18" letter-spacing="1.1">UNITY + C# + C++ + AUTOMATION</text>
-  <text x="104" y="279" fill="#475569" font-family="Consolas, 'Courier New', monospace" font-size="15" letter-spacing="0.8">Build quickly, test directly, keep what feels right.</text>
+  <text x="104" y="248" fill="#334155" font-family="sans-serif" font-size="18" letter-spacing="0.4">Unity + C# + C++ + 自動化</text>
+  <text x="104" y="279" fill="#475569" font-family="sans-serif" font-size="15" letter-spacing="0.2">まず作って、触って、良い手触りだけ残す。</text>
 
-  <text x="814" y="62" fill="#CBD5E1" font-family="Consolas, 'Courier New', monospace" font-size="14" letter-spacing="1.9">CURRENT FOCUS</text>
+  <text x="814" y="62" fill="#CBD5E1" font-family="sans-serif" font-size="14" letter-spacing="0.8">いま作るもの</text>
 
   <rect x="814" y="84" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
   <circle cx="842" cy="112" r="6" fill="#F97316"/>
-  <text x="862" y="108" fill="#F8FAFC" font-family="Cambria, Georgia, serif" font-size="28" font-weight="700">Game prototyping</text>
-  <text x="862" y="128" fill="#CBD5E1" font-family="Consolas, 'Courier New', monospace" font-size="15">rapid loops / feel-first iteration</text>
+  <text x="862" y="108" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">ゲーム試作</text>
+  <text x="862" y="128" fill="#CBD5E1" font-family="sans-serif" font-size="15">ループと手触りを先に確かめる</text>
 
   <rect x="814" y="152" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
   <circle cx="842" cy="180" r="6" fill="#F97316"/>
-  <text x="862" y="176" fill="#F8FAFC" font-family="Cambria, Georgia, serif" font-size="28" font-weight="700">Desktop tools</text>
-  <text x="862" y="196" fill="#CBD5E1" font-family="Consolas, 'Courier New', monospace" font-size="15">small utilities / practical wins</text>
+  <text x="862" y="176" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">デスクトップツール</text>
+  <text x="862" y="196" fill="#CBD5E1" font-family="sans-serif" font-size="15">日常作業の摩擦を減らす</text>
 
   <rect x="814" y="220" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
   <circle cx="842" cy="248" r="6" fill="#F97316"/>
-  <text x="862" y="244" fill="#F8FAFC" font-family="Cambria, Georgia, serif" font-size="28" font-weight="700">Dev automation</text>
-  <text x="862" y="264" fill="#CBD5E1" font-family="Consolas, 'Courier New', monospace" font-size="15">bots / helpers / routine cleanup</text>
+  <text x="862" y="244" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">開発自動化</text>
+  <text x="862" y="264" fill="#CBD5E1" font-family="sans-serif" font-size="15">補助ツールで手作業を減らす</text>
 
   <circle cx="1118" cy="48" r="10" fill="#F97316"/>
   <circle cx="1089" cy="48" r="5" fill="#E2E8F0" fill-opacity="0.9"/>

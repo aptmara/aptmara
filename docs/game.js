@@ -84,9 +84,9 @@ function finishGame() {
 
   updateHud();
   setOverlay(
-    "RUN COMPLETE",
-    `score ${state.score} / best ${state.best}。もう一回遊ぶなら PLAY AGAIN。`,
-    "PLAY AGAIN",
+    "終了",
+    `今回 ${state.score} 点 / 最高 ${state.best} 点。もう一回遊ぶなら再挑戦。`,
+    "再挑戦",
   );
 }
 
@@ -328,8 +328,8 @@ function drawUi() {
   context.fillStyle = "rgba(255, 255, 255, 0.08)";
   context.fillRect(24, 24, 212, 54);
   context.fillStyle = "#cbd5e1";
-  context.font = "14px 'IBM Plex Mono'";
-  context.fillText("COLLECT ORANGE / AVOID NOISE", 40, 57);
+  context.font = "14px 'Zen Kaku Gothic New'";
+  context.fillText("シグナルを拾う / ノイズを避ける", 40, 57);
   context.restore();
 }
 
@@ -397,7 +397,7 @@ startButton.addEventListener("click", startGame);
 overlayButton.addEventListener("click", startGame);
 
 updateHud();
-setOverlay("SIGNAL LOOP", "START RUN を押して begin。 signal は拾って、 noise は避ける。", "PLAY");
+setOverlay("SIGNAL LOOP", "開始するを押してスタート。シグナルは拾って、ノイズは避ける。", "遊ぶ");
 requestAnimationFrame((timestamp) => {
   state.lastTick = timestamp;
   draw(timestamp);

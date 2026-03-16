@@ -30,7 +30,7 @@ foreach ($pagesPath in @($pagesIndexPath, $pagesStylesPath, $pagesScriptPath)) {
     }
 }
 
-$readme = Get-Content -Raw $readmePath
+$readme = Get-Content -Raw -Encoding UTF8 $readmePath
 
 if ($readme -notmatch "\./assets/header\.svg") {
     throw "README does not reference ./assets/header.svg"
@@ -46,7 +46,7 @@ foreach ($repo in $requiredRepos) {
     }
 }
 
-[xml](Get-Content -Raw $headerPath) | Out-Null
-[xml](Get-Content -Raw (Join-Path $root "docs\\favicon.svg")) | Out-Null
+[xml](Get-Content -Raw -Encoding UTF8 $headerPath) | Out-Null
+[xml](Get-Content -Raw -Encoding UTF8 (Join-Path $root "docs\\favicon.svg")) | Out-Null
 
 Write-Output "PROFILE_VALID"
