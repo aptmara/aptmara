@@ -38,13 +38,8 @@
   `C++ / ECS` ECS を題材にした C++ の実験リポジトリ
 
 ## 遊べるおまけ
-
-> まず小さく作る。  
-> 動かして確かめる。  
-> 良かったものを残す。
-
 <details>
-  <summary><strong>隠し要素 / ミニゲーム</strong></summary>
+  <summary><strong>ミニゲーム</strong></summary>
   <br>
   <a href="https://aptmara.github.io/aptmara/">
     <img src="https://img.shields.io/badge/%E9%81%8A%E3%81%B6-%E3%81%AA%E3%82%89%E3%81%B9%E3%81%AA%E3%81%8A%E3%81%97-f97316?style=for-the-badge" alt="ならべなおしで遊ぶ">
