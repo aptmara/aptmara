@@ -10,7 +10,6 @@
 
 <p align="center">
   ゲームプログラマです。Unity / C# / C++ を中心に、ゲームの試作や実用ツール、開発の自動化に取り組んでいます。<br>
-  まず素早く形にして、触り心地を確かめ、必要ならすぐ作り直します。
 </p>
 
 ## 最近つくっているもの
@@ -37,7 +36,7 @@
 - [**ECS_BACE**](https://github.com/aptmara/ECS_BACE)  
   `C++ / ECS` ECS を題材にした C++ の実験リポジトリ
 
-## 遊べるおまけ
+## なにか
 <details>
   <summary><strong>ミニゲーム</strong></summary>
   <br>
@@ -57,12 +56,6 @@
 <p align="center">
   <img src="https://skillicons.dev/icons?i=unity,cs,cpp,python,ts,js,dotnet,git,github,vscode,visualstudio" alt="使用技術">
 </p>
-
-## 大事にしていること
-
-- ゲームループの手触りを早い段階で確かめる
-- 毎日の作業の手間を減らす道具を作る
-- 必要なら小さく作り直して精度を上げる
 
 ## 連絡先
 
