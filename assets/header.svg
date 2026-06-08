@@ -1,57 +1,151 @@
 <svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">aptmara プロフィールヘッダー</title>
-  <desc id="desc">日本語主体の工業調 GitHub プロフィールヘッダー。</desc>
+  <title id="title">APTMARA プロフィールヘッダー</title>
   <defs>
-    <linearGradient id="paper" x1="54" y1="30" x2="1160" y2="290" gradientUnits="userSpaceOnUse">
+    <linearGradient id="paper" x1="32" y1="24" x2="1184" y2="304" gradientUnits="userSpaceOnUse">
       <stop stop-color="#F8FAFC"/>
-      <stop offset="1" stop-color="#EEF2F7"/>
+      <stop offset="1" stop-color="#E9EEF6"/>
     </linearGradient>
-    <linearGradient id="night" x1="768" y1="16" x2="1168" y2="304" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#172033"/>
-      <stop offset="1" stop-color="#0F172A"/>
+
+    <linearGradient id="night" x1="760" y1="16" x2="1184" y2="304" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#182235"/>
+      <stop offset="1" stop-color="#0B1120"/>
     </linearGradient>
-    <filter id="shadow" x="0" y="0" width="1200" height="320" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+
+    <filter id="shadow" x="-20" y="-20" width="1240" height="360" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#020617" flood-opacity="0.16"/>
     </filter>
-    <pattern id="microgrid" width="16" height="16" patternUnits="userSpaceOnUse">
-      <path d="M16 0H0V16" stroke="#94A3B8" stroke-opacity="0.14" stroke-width="1"/>
+
+    <pattern id="microgrid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M18 0H0V18" stroke="#64748B" stroke-opacity="0.12" stroke-width="1"/>
     </pattern>
+
+    <clipPath id="cardClip">
+      <rect x="16" y="16" width="1168" height="288" rx="30"/>
+    </clipPath>
+
+    <style>
+      .font {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "Hiragino Sans",
+          "Yu Gothic",
+          sans-serif;
+      }
+
+      .label {
+        fill: #64748B;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+      }
+
+      .title {
+        fill: #0F172A;
+        font-size: 66px;
+        font-weight: 800;
+        letter-spacing: 1.6px;
+      }
+
+      .subtitle {
+        fill: #1E293B;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.35px;
+      }
+
+      .body {
+        fill: #475569;
+        font-size: 15px;
+        letter-spacing: 0.2px;
+      }
+
+      .panel-title {
+        fill: #CBD5E1;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      .card-title {
+        fill: #F8FAFC;
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .card-body {
+        fill: #CBD5E1;
+        font-size: 14px;
+      }
+
+      .chip {
+        fill: #FFFFFF;
+        fill-opacity: 0.72;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+    </style>
   </defs>
 
   <g filter="url(#shadow)">
     <rect x="16" y="16" width="1168" height="288" rx="30" fill="url(#paper)"/>
   </g>
 
-  <rect x="16" y="16" width="1168" height="288" rx="30" fill="url(#microgrid)"/>
-  <rect x="754" y="16" width="430" height="288" rx="30" fill="url(#night)"/>
-  <path d="M716 16H780L692 304H628L716 16Z" fill="#F97316"/>
-  <rect x="76" y="58" width="10" height="182" rx="5" fill="#F97316"/>
-  <rect x="104" y="58" width="132" height="30" rx="15" fill="#0F172A"/>
-  <text x="100" y="20" text-anchor="middle" fill="#F8FAFC" font-family="sans-serif" font-size="13" letter-spacing="1.4">プロフィール</text>
+  <g clip-path="url(#cardClip)">
+    <rect x="16" y="16" width="1168" height="288" fill="url(#paper)"/>
+    <rect x="16" y="16" width="1168" height="288" fill="url(#microgrid)"/>
 
-  <text x="104" y="140" fill="#0F172A" font-family="sans-serif" font-size="72" font-weight="700" letter-spacing="1.2">APTMA</text>
-  <text x="104" y="188" fill="#1E293B" font-family="sans-serif" font-size="25" font-weight="700" letter-spacing="0.4">ゲーム制作 / ツール開発 / 遊べる試作</text>
-  <rect x="104" y="214" width="372" height="4" rx="2" fill="#F97316"/>
-  <text x="104" y="248" fill="#334155" font-family="sans-serif" font-size="18" letter-spacing="0.4">Unity + C# + C++ + 自動化</text>
-  <text x="104" y="279" fill="#475569" font-family="sans-serif" font-size="15" letter-spacing="0.2">まず作り、触って確かめ、良かったものを残す。</text>
+    <path d="M746 16H1184V304H658L746 16Z" fill="url(#night)"/>
+    <path d="M700 16H772L684 304H612L700 16Z" fill="#F97316"/>
+    <path d="M772 16H788L700 304H684L772 16Z" fill="#FDBA74" fill-opacity="0.35"/>
 
-  <text x="814" y="62" fill="#CBD5E1" font-family="sans-serif" font-size="14" letter-spacing="0.4">最近つくっているもの</text>
+    <path d="M88 270H506" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="6 8" stroke-opacity="0.7"/>
+    <path d="M84 58V242" stroke="#F97316" stroke-width="10" stroke-linecap="round"/>
 
-  <rect x="814" y="84" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
-  <circle cx="842" cy="112" r="6" fill="#F97316"/>
-  <text x="862" y="108" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">ゲームの試作</text>
-  <text x="862" y="128" fill="#CBD5E1" font-family="sans-serif" font-size="15">まず遊べるところまで作る</text>
+    <rect x="88" y="38" width="134" height="30" rx="15" fill="#0F172A"/>
+    <text x="155" y="58" text-anchor="middle" class="font" fill="#F8FAFC" font-size="13" font-weight="700" letter-spacing="1.4">プロフィール</text>
 
-  <rect x="814" y="152" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
-  <circle cx="842" cy="180" r="6" fill="#F97316"/>
-  <text x="862" y="176" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">デスクトップツール</text>
-  <text x="862" y="196" fill="#CBD5E1" font-family="sans-serif" font-size="15">日々の作業を少し楽にする</text>
+    <text x="104" y="137" class="font title">APTMARA</text>
+    <text x="104" y="184" class="font subtitle">ゲーム制作 / ツール開発 / 遊べる試作</text>
 
-  <rect x="814" y="220" width="308" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.14"/>
-  <circle cx="842" cy="248" r="6" fill="#F97316"/>
-  <text x="862" y="244" fill="#F8FAFC" font-family="sans-serif" font-size="26" font-weight="700">開発の自動化</text>
-  <text x="862" y="264" fill="#CBD5E1" font-family="sans-serif" font-size="15">手作業を減らす仕組みを作る</text>
+    <rect x="104" y="210" width="390" height="4" rx="2" fill="#F97316"/>
+    <rect x="104" y="232" width="74" height="28" rx="14" fill="#0F172A"/>
+    <rect x="188" y="232" width="58" height="28" rx="14" fill="#0F172A"/>
+    <rect x="256" y="232" width="64" height="28" rx="14" fill="#0F172A"/>
+    <rect x="330" y="232" width="118" height="28" rx="14" fill="#0F172A"/>
 
-  <circle cx="1118" cy="48" r="10" fill="#F97316"/>
-  <circle cx="1089" cy="48" r="5" fill="#E2E8F0" fill-opacity="0.9"/>
+    <text x="141" y="251" text-anchor="middle" class="font chip">Unity</text>
+    <text x="217" y="251" text-anchor="middle" class="font chip">C#</text>
+    <text x="288" y="251" text-anchor="middle" class="font chip">C++</text>
+    <text x="389" y="251" text-anchor="middle" class="font chip">Automation</text>
+
+    <text x="104" y="282" class="font body">まず作り、触って確かめ、良かったものを残す。</text>
+
+    <text x="806" y="64" class="font panel-title">最近つくっているもの</text>
+
+    <rect x="806" y="84" width="328" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.065" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <circle cx="834" cy="112" r="6" fill="#F97316"/>
+    <text x="856" y="108" class="font card-title">ゲームの試作</text>
+    <text x="856" y="128" class="font card-body">まず遊べるところまで作る</text>
+
+    <rect x="806" y="152" width="328" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.065" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <circle cx="834" cy="180" r="6" fill="#F97316"/>
+    <text x="856" y="176" class="font card-title">デスクトップツール</text>
+    <text x="856" y="196" class="font card-body">日々の作業を少し楽にする</text>
+
+    <rect x="806" y="220" width="328" height="56" rx="16" fill="#FFFFFF" fill-opacity="0.065" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <circle cx="834" cy="248" r="6" fill="#F97316"/>
+    <text x="856" y="244" class="font card-title">開発の自動化</text>
+    <text x="856" y="264" class="font card-body">手作業を減らす仕組みを作る</text>
+
+    <circle cx="1122" cy="48" r="10" fill="#F97316"/>
+    <circle cx="1093" cy="48" r="5" fill="#E2E8F0" fill-opacity="0.9"/>
+
+    <path d="M1008 52H1064" stroke="#E2E8F0" stroke-opacity="0.16" stroke-width="2" stroke-linecap="round"/>
+    <path d="M1018 268H1134" stroke="#E2E8F0" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+  </g>
 </svg>
