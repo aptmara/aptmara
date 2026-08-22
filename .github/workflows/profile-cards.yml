@@ -76,6 +76,7 @@ jobs:
           options: username=aptmara&repo=DesktopOrganizer&hide_border=true&theme=github_dark
           path: profile/desktop-organizer-dark.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       - name: Generate DesktopOrganizer light
         uses: stats-organization/github-readme-stats-action@v2
@@ -84,6 +85,7 @@ jobs:
           options: username=aptmara&repo=DesktopOrganizer&hide_border=true&theme=default
           path: profile/desktop-organizer-light.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       - name: Generate GitTooljp dark
         uses: stats-organization/github-readme-stats-action@v2
@@ -92,6 +94,7 @@ jobs:
           options: username=aptmara&repo=GitTooljp&hide_border=true&theme=github_dark
           path: profile/gittooljp-dark.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       - name: Generate GitTooljp light
         uses: stats-organization/github-readme-stats-action@v2
@@ -100,6 +103,7 @@ jobs:
           options: username=aptmara&repo=GitTooljp&hide_border=true&theme=default
           path: profile/gittooljp-light.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       - name: Generate SimpleZipper dark
         uses: stats-organization/github-readme-stats-action@v2
@@ -108,6 +112,7 @@ jobs:
           options: username=aptmara&repo=SimpleZipper&hide_border=true&theme=github_dark
           path: profile/simplezipper-dark.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       - name: Generate SimpleZipper light
         uses: stats-organization/github-readme-stats-action@v2
@@ -116,6 +121,7 @@ jobs:
           options: username=aptmara&repo=SimpleZipper&hide_border=true&theme=default
           path: profile/simplezipper-light.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       - name: Generate ECS_BACE dark
         uses: stats-organization/github-readme-stats-action@v2
@@ -124,6 +130,7 @@ jobs:
           options: username=aptmara&repo=ECS_BACE&hide_border=true&theme=github_dark
           path: profile/ecs-bace-dark.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       - name: Generate ECS_BACE light
         uses: stats-organization/github-readme-stats-action@v2
@@ -132,13 +139,39 @@ jobs:
           options: username=aptmara&repo=ECS_BACE&hide_border=true&theme=default
           path: profile/ecs-bace-light.svg
           token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
 
       # =========================================================
-      # Cache other external cards locally
+      # Trophies
       #
-      # 外部サービスが死んでも:
-      #   既存SVGがある -> 古いものを維持
-      #   初回でSVGがない -> placeholderを生成
+      # Vercel等へアクセスせず、
+      # github-profile-trophy本体をAction内で実行して生成
+      # =========================================================
+
+      - name: Generate trophies dark
+        uses: ryo-ma/github-profile-trophy@master
+        with:
+          username: aptmara
+          output_path: profile/trophy-dark.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+          theme: darkhub
+
+      - name: Generate trophies light
+        uses: ryo-ma/github-profile-trophy@master
+        with:
+          username: aptmara
+          output_path: profile/trophy-light.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+          theme: flat
+
+      # =========================================================
+      # Cache external cards locally
+      #
+      # READMEから外部URLを直接参照しない。
+      #
+      # 取得失敗時:
+      # - 過去のSVGが存在する -> そのまま残す
+      # - 初回で存在しない -> placeholder生成
       # =========================================================
 
       - name: Cache external SVG cards
@@ -187,36 +220,19 @@ jobs:
               return 0
             fi
 
-            echo "Fetch failed and no cache exists. Creating placeholder."
+            echo "Fetch failed. Creating placeholder: ${output}"
 
-            cat > "${output}" <<'SVG'
-          <svg xmlns="http://www.w3.org/2000/svg" width="800" height="120" viewBox="0 0 800 120">
-            <rect width="800" height="120" rx="8" fill="#0d1117"/>
-            <text
-              x="400"
-              y="64"
-              text-anchor="middle"
-              font-family="Arial, sans-serif"
-              font-size="16"
-              fill="#8b949e">
-              Temporarily unavailable
-            </text>
-          </svg>
-          SVG
+            printf '%s\n' \
+              '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="120" viewBox="0 0 800 120">' \
+              '  <rect width="800" height="120" rx="8" fill="#0d1117"/>' \
+              '  <text x="400" y="64" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#8b949e">' \
+              '    Temporarily unavailable' \
+              '  </text>' \
+              '</svg>' \
+              > "${output}"
           }
 
-          # Trophy
-          cache_svg \
-            profile/trophy-dark.svg \
-            "https://github-profile-trophy.vercel.app/?username=aptmara&theme=darkhub&no-frame=true&margin-w=5&margin-h=5&column=4" \
-            "https://github-profile-trophy-liard-delta.vercel.app/?username=aptmara&theme=darkhub&no-frame=true&margin-w=5&margin-h=5&column=4"
-
-          cache_svg \
-            profile/trophy-light.svg \
-            "https://github-profile-trophy.vercel.app/?username=aptmara&theme=flat&no-frame=true&margin-w=5&margin-h=5&column=4" \
-            "https://github-profile-trophy-liard-delta.vercel.app/?username=aptmara&theme=flat&no-frame=true&margin-w=5&margin-h=5&column=4"
-
-          # Activity Graph
+          # Contribution Activity Graph
           cache_svg \
             profile/activity-dark.svg \
             "https://github-readme-activity-graph.vercel.app/graph?username=aptmara&theme=github-compact&hide_border=true&area=true"
@@ -234,7 +250,7 @@ jobs:
             profile/profile-details-light.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=aptmara&theme=github"
 
-          # Repositories per language
+          # Repositories per Language
           cache_svg \
             profile/repos-language-dark.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=aptmara&theme=github_dark"
@@ -243,7 +259,7 @@ jobs:
             profile/repos-language-light.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=aptmara&theme=github"
 
-          # Commit language
+          # Most Commit Language
           cache_svg \
             profile/commit-language-dark.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=aptmara&theme=github_dark"
@@ -252,7 +268,7 @@ jobs:
             profile/commit-language-light.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=aptmara&theme=github"
 
-          # Summary stats
+          # Summary Stats
           cache_svg \
             profile/summary-stats-dark.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/stats?username=aptmara&theme=github_dark"
@@ -261,7 +277,7 @@ jobs:
             profile/summary-stats-light.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/stats?username=aptmara&theme=github"
 
-          # Productive time
+          # Productive Time
           cache_svg \
             profile/productive-time-dark.svg \
             "https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=aptmara&theme=github_dark&utcOffset=9"
@@ -280,7 +296,7 @@ jobs:
             "https://streak-stats.demolab.com?user=aptmara&hide_border=true"
 
       # =========================================================
-      # Commit generated files
+      # Commit
       # =========================================================
 
       - name: Commit profile cards
