@@ -1,5 +1,26 @@
 <p align="center">
-  <img src="./profile-card.png" alt="aptmara profile card" width="420">
+  <img
+    src="./assets/profile-card.png"
+    alt="APTMA"
+    width="360"
+  >
+  &nbsp;&nbsp;
+  <a href="https://github.com/SAWARATSUKI/KawaiiLogos">
+    <img
+      src="https://raw.githubusercontent.com/SAWARATSUKI/KawaiiLogos/main/IamSeries/webp/IamProgrammer!.webp"
+      alt="私はプログラマー"
+      width="360"
+    >
+  </a>
+</p>
+
+<p align="center">
+  <sub>
+    「私はプログラマー」:
+    <a href="https://github.com/SAWARATSUKI/KawaiiLogos/tree/main/IamSeries/webp">
+      SAWARATSUKI / KawaiiLogos
+    </a>
+  </sub>
 </p>
 
 <h1 align="center">aptmara</h1>
