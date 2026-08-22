@@ -1,0 +1,301 @@
+name: Profile Cards
+
+on:
+  schedule:
+    # JST 06:10
+    - cron: "10 21 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Create profile directory
+        run: mkdir -p profile
+
+      # =========================================================
+      # GitHub Stats
+      # =========================================================
+
+      - name: Generate stats dark
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: stats
+          options: username=aptmara&show_icons=true&include_all_commits=true&count_private=true&hide_border=true&theme=github_dark
+          path: profile/stats-dark.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
+
+      - name: Generate stats light
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: stats
+          options: username=aptmara&show_icons=true&include_all_commits=true&count_private=true&hide_border=true&theme=default
+          path: profile/stats-light.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
+
+      # =========================================================
+      # Top Languages
+      # =========================================================
+
+      - name: Generate languages dark
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: top-langs
+          options: username=aptmara&layout=compact&langs_count=8&hide_border=true&theme=github_dark
+          path: profile/languages-dark.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
+
+      - name: Generate languages light
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: top-langs
+          options: username=aptmara&layout=compact&langs_count=8&hide_border=true&theme=default
+          path: profile/languages-light.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+          fail_on_error: true
+
+      # =========================================================
+      # Featured Projects
+      # =========================================================
+
+      - name: Generate DesktopOrganizer dark
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=DesktopOrganizer&hide_border=true&theme=github_dark
+          path: profile/desktop-organizer-dark.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Generate DesktopOrganizer light
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=DesktopOrganizer&hide_border=true&theme=default
+          path: profile/desktop-organizer-light.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Generate GitTooljp dark
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=GitTooljp&hide_border=true&theme=github_dark
+          path: profile/gittooljp-dark.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Generate GitTooljp light
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=GitTooljp&hide_border=true&theme=default
+          path: profile/gittooljp-light.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Generate SimpleZipper dark
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=SimpleZipper&hide_border=true&theme=github_dark
+          path: profile/simplezipper-dark.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Generate SimpleZipper light
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=SimpleZipper&hide_border=true&theme=default
+          path: profile/simplezipper-light.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Generate ECS_BACE dark
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=ECS_BACE&hide_border=true&theme=github_dark
+          path: profile/ecs-bace-dark.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      - name: Generate ECS_BACE light
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: pin
+          options: username=aptmara&repo=ECS_BACE&hide_border=true&theme=default
+          path: profile/ecs-bace-light.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+
+      # =========================================================
+      # Cache other external cards locally
+      #
+      # 外部サービスが死んでも:
+      #   既存SVGがある -> 古いものを維持
+      #   初回でSVGがない -> placeholderを生成
+      # =========================================================
+
+      - name: Cache external SVG cards
+        shell: bash
+        run: |
+          set -u
+
+          mkdir -p profile
+
+          cache_svg() {
+            local output="$1"
+            shift
+
+            local temp="${output}.tmp"
+            local success=0
+
+            for url in "$@"; do
+              echo "Fetching: ${url}"
+
+              if curl \
+                -fsSL \
+                --retry 2 \
+                --retry-delay 3 \
+                --connect-timeout 15 \
+                --max-time 60 \
+                "${url}" \
+                -o "${temp}"; then
+
+                if grep -qi "<svg" "${temp}"; then
+                  mv "${temp}" "${output}"
+                  echo "Updated: ${output}"
+                  success=1
+                  break
+                fi
+              fi
+
+              rm -f "${temp}"
+            done
+
+            if [ "${success}" -eq 1 ]; then
+              return 0
+            fi
+
+            if [ -f "${output}" ]; then
+              echo "Fetch failed. Keeping existing ${output}"
+              return 0
+            fi
+
+            echo "Fetch failed and no cache exists. Creating placeholder."
+
+            cat > "${output}" <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" width="800" height="120" viewBox="0 0 800 120">
+            <rect width="800" height="120" rx="8" fill="#0d1117"/>
+            <text
+              x="400"
+              y="64"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="16"
+              fill="#8b949e">
+              Temporarily unavailable
+            </text>
+          </svg>
+          SVG
+          }
+
+          # Trophy
+          cache_svg \
+            profile/trophy-dark.svg \
+            "https://github-profile-trophy.vercel.app/?username=aptmara&theme=darkhub&no-frame=true&margin-w=5&margin-h=5&column=4" \
+            "https://github-profile-trophy-liard-delta.vercel.app/?username=aptmara&theme=darkhub&no-frame=true&margin-w=5&margin-h=5&column=4"
+
+          cache_svg \
+            profile/trophy-light.svg \
+            "https://github-profile-trophy.vercel.app/?username=aptmara&theme=flat&no-frame=true&margin-w=5&margin-h=5&column=4" \
+            "https://github-profile-trophy-liard-delta.vercel.app/?username=aptmara&theme=flat&no-frame=true&margin-w=5&margin-h=5&column=4"
+
+          # Activity Graph
+          cache_svg \
+            profile/activity-dark.svg \
+            "https://github-readme-activity-graph.vercel.app/graph?username=aptmara&theme=github-compact&hide_border=true&area=true"
+
+          cache_svg \
+            profile/activity-light.svg \
+            "https://github-readme-activity-graph.vercel.app/graph?username=aptmara&theme=minimal&hide_border=true&area=true"
+
+          # Profile Details
+          cache_svg \
+            profile/profile-details-dark.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=aptmara&theme=github_dark"
+
+          cache_svg \
+            profile/profile-details-light.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=aptmara&theme=github"
+
+          # Repositories per language
+          cache_svg \
+            profile/repos-language-dark.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=aptmara&theme=github_dark"
+
+          cache_svg \
+            profile/repos-language-light.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=aptmara&theme=github"
+
+          # Commit language
+          cache_svg \
+            profile/commit-language-dark.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=aptmara&theme=github_dark"
+
+          cache_svg \
+            profile/commit-language-light.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=aptmara&theme=github"
+
+          # Summary stats
+          cache_svg \
+            profile/summary-stats-dark.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/stats?username=aptmara&theme=github_dark"
+
+          cache_svg \
+            profile/summary-stats-light.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/stats?username=aptmara&theme=github"
+
+          # Productive time
+          cache_svg \
+            profile/productive-time-dark.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=aptmara&theme=github_dark&utcOffset=9"
+
+          cache_svg \
+            profile/productive-time-light.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=aptmara&theme=github&utcOffset=9"
+
+          # Streak
+          cache_svg \
+            profile/streak-dark.svg \
+            "https://streak-stats.demolab.com?user=aptmara&theme=github-dark-blue&hide_border=true"
+
+          cache_svg \
+            profile/streak-light.svg \
+            "https://streak-stats.demolab.com?user=aptmara&hide_border=true"
+
+      # =========================================================
+      # Commit generated files
+      # =========================================================
+
+      - name: Commit profile cards
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add profile/*.svg
+
+          if git diff --cached --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+
+          git commit -m "chore: update profile cards [skip ci]"
+          git pull --rebase origin main
+          git push
