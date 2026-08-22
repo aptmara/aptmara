@@ -2,13 +2,10 @@ name: Metrics
 
 on:
   schedule:
+    # JST 06:30
     - cron: "30 21 * * *"
 
   workflow_dispatch:
-
-  push:
-    branches:
-      - main
 
 permissions:
   contents: write
