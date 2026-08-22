@@ -27,23 +27,26 @@ jobs:
           filename: github-metrics.svg
 
           template: classic
-
-          base: header, activity, community, repositories, metadata
-
           config_timezone: Asia/Tokyo
 
+          # Private / Organization repositories
+          repositories_affiliations: owner, collaborator, organization_member
+          repositories: 200
+
+          # More accurate base statistics
+          base: header, activity, community, repositories, metadata
+          base_indepth: yes
+
+          # Full-year contribution calendar
           plugin_isocalendar: yes
           plugin_isocalendar_duration: full-year
 
+          # Languages
           plugin_languages: yes
-          plugin_languages_sections: most-used
+          plugin_languages_sections: most-used, recently-used
           plugin_languages_details: percentage
           plugin_languages_limit: 8
 
-          plugin_habits: yes
-          plugin_habits_from: 200
-          plugin_habits_days: 30
-          plugin_habits_facts: yes
-          plugin_habits_charts: yes
-          plugin_habits_charts_type: graph
-          plugin_habits_trim: yes
+          # Recent language activity
+          plugin_languages_recent_days: 30
+          plugin_languages_recent_load: 500
