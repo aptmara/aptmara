@@ -34,6 +34,11 @@
   ECSなどの設計検証、開発支援ツール、ブラウザ拡張なども制作しています。
 </p>
 
+<p align="center">
+  <a href="https://portfolio.aptmaserver.uk/">Portfolio</a> |
+  <a href="mailto:github@ganba.ro">github@ganba.ro</a>
+</p>
+
 ---
 
 ## About
