@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="120" viewBox="0 0 800 120">
+  <rect width="800" height="120" rx="8" fill="#0d1117"/>
+  <text
+    x="400"
+    y="64"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="16"
+    fill="#8b949e">
+    Temporarily unavailable
+  </text>
+</svg>
