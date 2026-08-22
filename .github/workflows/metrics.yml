@@ -29,24 +29,20 @@ jobs:
           template: classic
           config_timezone: Asia/Tokyo
 
-          # Private / Organization repositories
-          repositories_affiliations: owner, collaborator, organization_member
+          # Own + Collaborator + Organization repositories
           repositories: 200
+          repositories_affiliations: owner, collaborator, organization_member
 
-          # More accurate base statistics
+          # Base statistics
           base: header, activity, community, repositories, metadata
           base_indepth: yes
 
-          # Full-year contribution calendar
+          # Contribution calendar
           plugin_isocalendar: yes
           plugin_isocalendar_duration: full-year
 
           # Languages
           plugin_languages: yes
-          plugin_languages_sections: most-used, recently-used
+          plugin_languages_sections: most-used
           plugin_languages_details: percentage
           plugin_languages_limit: 8
-
-          # Recent language activity
-          plugin_languages_recent_days: 30
-          plugin_languages_recent_load: 500
