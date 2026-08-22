@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="./assets/profile-card.png"
+    src="./profile-card.png"
     alt="APTMA"
     height="200"
   >
