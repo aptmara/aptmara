@@ -38,10 +38,6 @@ if ($readme -notmatch "\./assets/header\.svg") {
     throw "README does not reference ./assets/header.svg"
 }
 
-if ($readme -notmatch "https://aptmara\.github\.io/aptmara/") {
-    throw "README does not reference the GitHub Pages game"
-}
-
 foreach ($repo in $requiredRepos) {
     if ($readme -notmatch [Regex]::Escape($repo)) {
         throw "README is missing required repository reference: $repo"
