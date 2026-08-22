@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/header.svg" alt="aptmara" width="100%">
+  <img src="./profile-card.png" alt="aptmara profile card" width="420">
 </p>
 
 <h1 align="center">aptmara</h1>
