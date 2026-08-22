@@ -27,37 +27,83 @@
 ## Featured Projects
 
 <p align="center">
-  <a href="https://github.com/aptmara/DesktopOrganizer">
+
+<a href="https://github.com/aptmara/DesktopOrganizer">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="./profile/desktop-organizer-dark.svg"
+    >
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="./profile/desktop-organizer-light.svg"
+    >
     <img
-      src="https://github-readme-stats.vercel.app/api/pin/?username=aptmara&repo=DesktopOrganizer&theme=github_dark&hide_border=true"
+      src="./profile/desktop-organizer-light.svg"
       width="48%"
       alt="DesktopOrganizer"
-    />
-  </a>
-  <a href="https://github.com/aptmara/GitTooljp">
+    >
+  </picture>
+</a>
+
+<a href="https://github.com/aptmara/GitTooljp">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="./profile/gittooljp-dark.svg"
+    >
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="./profile/gittooljp-light.svg"
+    >
     <img
-      src="https://github-readme-stats.vercel.app/api/pin/?username=aptmara&repo=GitTooljp&theme=github_dark&hide_border=true"
+      src="./profile/gittooljp-light.svg"
       width="48%"
       alt="GitTooljp"
-    />
-  </a>
+    >
+  </picture>
+</a>
+
 </p>
 
 <p align="center">
-  <a href="https://github.com/aptmara/SimpleZipper">
+
+<a href="https://github.com/aptmara/SimpleZipper">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="./profile/simplezipper-dark.svg"
+    >
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="./profile/simplezipper-light.svg"
+    >
     <img
-      src="https://github-readme-stats.vercel.app/api/pin/?username=aptmara&repo=SimpleZipper&theme=github_dark&hide_border=true"
+      src="./profile/simplezipper-light.svg"
       width="48%"
       alt="SimpleZipper"
-    />
-  </a>
-  <a href="https://github.com/aptmara/ECS_BACE">
+    >
+  </picture>
+</a>
+
+<a href="https://github.com/aptmara/ECS_BACE">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="./profile/ecs-bace-dark.svg"
+    >
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="./profile/ecs-bace-light.svg"
+    >
     <img
-      src="https://github-readme-stats.vercel.app/api/pin/?username=aptmara&repo=ECS_BACE&theme=github_dark&hide_border=true"
+      src="./profile/ecs-bace-light.svg"
       width="48%"
       alt="ECS_BACE"
-    />
-  </a>
+    >
+  </picture>
+</a>
+
 </p>
 
 ### Other Projects
@@ -72,37 +118,39 @@
 ## Stats
 
 <p align="center">
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://github-readme-stats.vercel.app/api?username=aptmara&show_icons=true&include_all_commits=true&hide_border=true&theme=github_dark"
-    >
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://github-readme-stats.vercel.app/api?username=aptmara&show_icons=true&include_all_commits=true&hide_border=true&theme=default"
-    >
-    <img
-      src="https://github-readme-stats.vercel.app/api?username=aptmara&show_icons=true&include_all_commits=true&hide_border=true"
-      height="170"
-      alt="GitHub Stats"
-    >
-  </picture>
 
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=aptmara&layout=compact&langs_count=8&hide_border=true&theme=github_dark"
-    >
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://github-readme-stats.vercel.app/api/top-langs/?username=aptmara&layout=compact&langs_count=8&hide_border=true&theme=default"
-    >
-    <img
-      src="https://github-readme-stats.vercel.app/api/top-langs/?username=aptmara&layout=compact&langs_count=8&hide_border=true"
-      height="170"
-      alt="Top Languages"
-    >
-  </picture>
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./profile/stats-dark.svg"
+  >
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="./profile/stats-light.svg"
+  >
+  <img
+    src="./profile/stats-light.svg"
+    height="170"
+    alt="GitHub Stats"
+  >
+</picture>
+
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./profile/languages-dark.svg"
+  >
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="./profile/languages-light.svg"
+  >
+  <img
+    src="./profile/languages-light.svg"
+    height="170"
+    alt="Top Languages"
+  >
+</picture>
+
 </p>
 
 ## Trophies
@@ -111,14 +159,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://github-profile-trophy.vercel.app/?username=aptmara&theme=darkhub&no-frame=true&margin-w=5&margin-h=5&column=4"
+      srcset="./profile/trophy-dark.svg"
     >
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://github-profile-trophy.vercel.app/?username=aptmara&theme=flat&no-frame=true&margin-w=5&margin-h=5&column=4"
+      srcset="./profile/trophy-light.svg"
     >
     <img
-      src="https://github-profile-trophy.vercel.app/?username=aptmara&theme=flat&no-frame=true&margin-w=5&margin-h=5&column=4"
+      src="./profile/trophy-light.svg"
       width="100%"
       alt="GitHub Trophies"
     >
@@ -131,14 +179,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://github-readme-activity-graph.vercel.app/graph?username=aptmara&theme=github-compact&hide_border=true&area=true"
+      srcset="./profile/activity-dark.svg"
     >
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://github-readme-activity-graph.vercel.app/graph?username=aptmara&theme=minimal&hide_border=true&area=true"
+      srcset="./profile/activity-light.svg"
     >
     <img
-      src="https://github-readme-activity-graph.vercel.app/graph?username=aptmara&theme=minimal&hide_border=true&area=true"
+      src="./profile/activity-light.svg"
       width="100%"
       alt="Contribution Graph"
     >
@@ -151,14 +199,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=aptmara&theme=github_dark"
+      srcset="./profile/profile-details-dark.svg"
     >
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=aptmara&theme=github"
+      srcset="./profile/profile-details-light.svg"
     >
     <img
-      src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=aptmara&theme=github"
+      src="./profile/profile-details-light.svg"
       width="100%"
       alt="Profile Details"
     >
@@ -166,71 +214,75 @@
 </p>
 
 <p align="center">
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=aptmara&theme=github_dark"
-    >
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=aptmara&theme=github"
-    >
-    <img
-      src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=aptmara&theme=github"
-      width="49%"
-      alt="Repositories per Language"
-    >
-  </picture>
 
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=aptmara&theme=github_dark"
-    >
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=aptmara&theme=github"
-    >
-    <img
-      src="https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=aptmara&theme=github"
-      width="49%"
-      alt="Most Commit Language"
-    >
-  </picture>
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./profile/repos-language-dark.svg"
+  >
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="./profile/repos-language-light.svg"
+  >
+  <img
+    src="./profile/repos-language-light.svg"
+    width="49%"
+    alt="Repositories per Language"
+  >
+</picture>
+
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./profile/commit-language-dark.svg"
+  >
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="./profile/commit-language-light.svg"
+  >
+  <img
+    src="./profile/commit-language-light.svg"
+    width="49%"
+    alt="Most Commit Language"
+  >
+</picture>
+
 </p>
 
 <p align="center">
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/stats?username=aptmara&theme=github_dark"
-    >
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/stats?username=aptmara&theme=github"
-    >
-    <img
-      src="https://github-profile-summary-cards.vercel.app/api/cards/stats?username=aptmara&theme=github"
-      width="49%"
-      alt="GitHub Statistics"
-    >
-  </picture>
 
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=aptmara&theme=github_dark&utcOffset=9"
-    >
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=aptmara&theme=github&utcOffset=9"
-    >
-    <img
-      src="https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=aptmara&theme=github&utcOffset=9"
-      width="49%"
-      alt="Productive Time"
-    >
-  </picture>
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./profile/summary-stats-dark.svg"
+  >
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="./profile/summary-stats-light.svg"
+  >
+  <img
+    src="./profile/summary-stats-light.svg"
+    width="49%"
+    alt="GitHub Statistics"
+  >
+</picture>
+
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./profile/productive-time-dark.svg"
+  >
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="./profile/productive-time-light.svg"
+  >
+  <img
+    src="./profile/productive-time-light.svg"
+    width="49%"
+    alt="Productive Time"
+  >
+</picture>
+
 </p>
 
 ## Streak
@@ -239,14 +291,14 @@
   <picture>
     <source
       media="(prefers-color-scheme: dark)"
-      srcset="https://streak-stats.demolab.com?user=aptmara&theme=github-dark-blue&hide_border=true"
+      srcset="./profile/streak-dark.svg"
     >
     <source
       media="(prefers-color-scheme: light)"
-      srcset="https://streak-stats.demolab.com?user=aptmara&hide_border=true"
+      srcset="./profile/streak-light.svg"
     >
     <img
-      src="https://streak-stats.demolab.com?user=aptmara&hide_border=true"
+      src="./profile/streak-light.svg"
       alt="GitHub Streak"
     >
   </picture>
@@ -283,16 +335,6 @@
 **Development**
 
 `Visual Studio` `Git` `GitHub` `Windows`
-
----
-
-## Playable
-
-### [ならべなおし](https://aptmara.github.io/aptmara/)
-
-散らばったオブジェクトを元の位置へ戻していくミニゲーム。
-
-[Play in Browser →](https://aptmara.github.io/aptmara/)
 
 ---
 
